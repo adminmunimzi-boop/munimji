@@ -69,6 +69,16 @@ export interface DailyReportItem {
   submittedAt?: string;
 }
 
+export interface StoreClosureItem {
+  id: string;
+  businessId: string;
+  date: string; // YYYY-MM-DD
+  reason: 'Weekly Off' | 'Festival / Holiday' | 'Maintenance / Renovation' | 'Emergency' | 'Other';
+  notes?: string;
+  markedBy?: string;
+  createdAt: string;
+}
+
 interface PortfolioStats {
   totalInvested: number;
   currentMonthlyRevenue: number;
@@ -91,6 +101,14 @@ interface BusinessContextType {
   dailyReports: DailyReportItem[];
   addDailyReport: (report: Omit<DailyReportItem, 'id'>) => void;
   verifyDailyReport: (id: string, status: 'Verified' | 'Flagged') => void;
+  storeClosures: StoreClosureItem[];
+  markStoreClosed: (closure: Omit<StoreClosureItem, 'id' | 'createdAt'>) => void;
+  removeStoreClosure: (id: string) => void;
+  getDateReportingState: (
+    businessId: string,
+    dateStr: string,
+    cutoffTime?: string
+  ) => 'submitted' | 'closed' | 'missed' | 'today' | 'future';
   stats: PortfolioStats;
   seedSampleData: () => void;
   clearAllData: () => void;
@@ -136,6 +154,18 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return [];
   });
 
+  const [storeClosures, setStoreClosures] = useState<StoreClosureItem[]>(() => {
+    const saved = localStorage.getItem('munim_store_closures');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
   // Save to LocalStorage whenever state changes
   useEffect(() => {
     localStorage.setItem('munim_businesses', JSON.stringify(businesses));
@@ -148,6 +178,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem('munim_daily_reports', JSON.stringify(dailyReports));
   }, [dailyReports]);
+
+  useEffect(() => {
+    localStorage.setItem('munim_store_closures', JSON.stringify(storeClosures));
+  }, [storeClosures]);
 
   const addBusiness = (businessData: Omit<BusinessItem, 'id' | 'createdAt'>) => {
     const newBiz: BusinessItem = {
@@ -181,6 +215,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setBusinesses((prev) => prev.filter((b) => b.id !== id));
     setManagers((prev) => prev.filter((m) => m.businessId !== id));
     setDailyReports((prev) => prev.filter((r) => r.businessId !== id));
+    setStoreClosures((prev) => prev.filter((c) => c.businessId !== id));
   };
 
   const getBusiness = (id: string) => {
@@ -222,7 +257,18 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       status: reportData.status || 'Verified',
       submittedAt: reportData.submittedAt || new Date().toISOString(),
     };
-    setDailyReports((prev) => [newReport, ...prev]);
+    // Replace if report exists for same business and date, otherwise prepend
+    setDailyReports((prev) => {
+      const filtered = prev.filter(
+        (r) => !(r.businessId === reportData.businessId && r.date === reportData.date)
+      );
+      return [newReport, ...filtered];
+    });
+
+    // Remove any store closure marked for this date since a report was submitted
+    setStoreClosures((prev) =>
+      prev.filter((c) => !(c.businessId === reportData.businessId && c.date === reportData.date))
+    );
 
     // Update submitting manager's streak if found
     if (reportData.managerId) {
@@ -242,8 +288,66 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   };
 
+  const markStoreClosed = (closureData: Omit<StoreClosureItem, 'id' | 'createdAt'>) => {
+    const newClosure: StoreClosureItem = {
+      ...closureData,
+      id: 'cls_' + Date.now(),
+      createdAt: new Date().toISOString(),
+    };
+    setStoreClosures((prev) => {
+      const filtered = prev.filter(
+        (c) => !(c.businessId === closureData.businessId && c.date === closureData.date)
+      );
+      return [newClosure, ...filtered];
+    });
+  };
+
+  const removeStoreClosure = (id: string) => {
+    setStoreClosures((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const getDateReportingState = (
+    businessId: string,
+    dateStr: string,
+    cutoffTime: string = '22:00'
+  ): 'submitted' | 'closed' | 'missed' | 'today' | 'future' => {
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // 1. Check if store was closed on this date
+    const isClosed = storeClosures.some(
+      (c) => c.businessId === businessId && c.date === dateStr
+    );
+    if (isClosed) return 'closed';
+
+    // 2. Check if a report was submitted
+    const hasReport = dailyReports.some(
+      (r) => r.businessId === businessId && r.date === dateStr
+    );
+    if (hasReport) return 'submitted';
+
+    // 3. Future dates
+    if (dateStr > todayStr) {
+      return 'future';
+    }
+
+    // 4. Current day
+    if (dateStr === todayStr) {
+      return 'today';
+    }
+
+    // 5. Past date with no report and not closed is missed
+    return 'missed';
+  };
+
   // Seed standard real-world sample for testing if user desires
   const seedSampleData = () => {
+    const today = new Date();
+    const formatDate = (offsetDays: number) => {
+      const d = new Date();
+      d.setDate(today.getDate() - offsetDays);
+      return d.toISOString().split('T')[0];
+    };
+
     const sampleBiz: BusinessItem[] = [
       {
         id: 'biz_01',
@@ -327,14 +431,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
     ];
 
+    // Seed multiple days of reports for October to populate calendar
     const sampleReports: DailyReportItem[] = [
       {
-        id: 'rep_01',
+        id: 'rep_today',
         businessId: 'biz_01',
         businessName: 'Priya Foods',
         managerId: 'mgr_01',
         managerName: 'Rajesh Kumar',
-        date: new Date().toISOString().split('T')[0],
+        date: formatDate(0), // Today
         revenue: 18500,
         expenses: 11200,
         cashCollection: 11000,
@@ -350,50 +455,143 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         discrepancy: 0,
         billCount: 142,
         outstanding: 0,
-        notes: 'Good evening dinner rush. Raw dairy delivery accepted without spoilage.',
+        notes: 'Dinner rush was active. All kitchen bills closed cleanly.',
         status: 'Verified',
         submittedAt: new Date().toISOString(),
       },
       {
-        id: 'rep_02',
-        businessId: 'biz_02',
-        businessName: 'Shree Sai Fashion',
-        managerId: 'mgr_02',
-        managerName: 'Amit Verma',
-        date: new Date().toISOString().split('T')[0],
-        revenue: 24000,
-        expenses: 14500,
-        cashCollection: 14000,
-        bankCollection: 10000,
-        cashSales: 14000,
-        digitalSales: 10000,
+        id: 'rep_1',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        managerId: 'mgr_01',
+        managerName: 'Rajesh Kumar',
+        date: formatDate(1), // Yesterday
+        revenue: 19200,
+        expenses: 11800,
+        cashCollection: 11500,
+        bankCollection: 7700,
+        cashSales: 11500,
+        digitalSales: 7700,
         creditSales: 0,
-        rawMaterialExpenses: 11000,
+        rawMaterialExpenses: 8200,
         laborExpenses: 2500,
-        utilitiesExpenses: 1000,
+        utilitiesExpenses: 1100,
         otherExpenses: 0,
-        closingCashInDrawer: 5500,
+        closingCashInDrawer: 5200,
         discrepancy: 0,
-        billCount: 88,
+        billCount: 156,
         outstanding: 0,
-        notes: 'Festival festive collection stock clearance on track.',
+        notes: 'Smooth Saturday operations.',
         status: 'Verified',
         submittedAt: new Date().toISOString(),
+      },
+      {
+        id: 'rep_2',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        managerId: 'mgr_01',
+        managerName: 'Rajesh Kumar',
+        date: formatDate(2),
+        revenue: 16800,
+        expenses: 10500,
+        cashCollection: 10000,
+        bankCollection: 6800,
+        cashSales: 10000,
+        digitalSales: 6800,
+        creditSales: 0,
+        rawMaterialExpenses: 7500,
+        laborExpenses: 2500,
+        utilitiesExpenses: 500,
+        otherExpenses: 0,
+        closingCashInDrawer: 4100,
+        discrepancy: 0,
+        billCount: 130,
+        outstanding: 0,
+        notes: 'Vendor delivery delayed by 30 mins.',
+        status: 'Verified',
+        submittedAt: new Date().toISOString(),
+      },
+      {
+        id: 'rep_3',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        managerId: 'mgr_01',
+        managerName: 'Rajesh Kumar',
+        date: formatDate(3),
+        revenue: 17400,
+        expenses: 10900,
+        cashCollection: 10500,
+        bankCollection: 6900,
+        cashSales: 10500,
+        digitalSales: 6900,
+        creditSales: 0,
+        rawMaterialExpenses: 7800,
+        laborExpenses: 2500,
+        utilitiesExpenses: 600,
+        otherExpenses: 0,
+        closingCashInDrawer: 4300,
+        discrepancy: 0,
+        billCount: 138,
+        outstanding: 0,
+        notes: 'Standard Thursday footfall.',
+        status: 'Verified',
+        submittedAt: new Date().toISOString(),
+      },
+      {
+        id: 'rep_5',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        managerId: 'mgr_01',
+        managerName: 'Rajesh Kumar',
+        date: formatDate(5),
+        revenue: 15500,
+        expenses: 9800,
+        cashCollection: 9500,
+        bankCollection: 6000,
+        cashSales: 9500,
+        digitalSales: 6000,
+        creditSales: 0,
+        rawMaterialExpenses: 7000,
+        laborExpenses: 2200,
+        utilitiesExpenses: 600,
+        otherExpenses: 0,
+        closingCashInDrawer: 3800,
+        discrepancy: 0,
+        billCount: 122,
+        notes: 'Post-holiday recovery sales.',
+        status: 'Verified',
+        submittedAt: new Date().toISOString(),
+      },
+    ];
+
+    // Seed sample store closure for Tuesday (formatDate 4 = Tuesday)
+    const sampleClosures: StoreClosureItem[] = [
+      {
+        id: 'cls_01',
+        businessId: 'biz_01',
+        date: formatDate(4), // Tuesday Weekly Off
+        reason: 'Weekly Off',
+        notes: 'Scheduled Tuesday rest day for Connaught Place branch.',
+        markedBy: 'Rajesh Kumar',
+        createdAt: new Date().toISOString(),
       },
     ];
 
     setBusinesses(sampleBiz);
     setManagers(sampleManagers);
     setDailyReports(sampleReports);
+    setStoreClosures(sampleClosures);
   };
 
   const clearAllData = () => {
     setBusinesses([]);
     setManagers([]);
     setDailyReports([]);
+    setStoreClosures([]);
     localStorage.removeItem('munim_businesses');
     localStorage.removeItem('munim_managers');
     localStorage.removeItem('munim_daily_reports');
+    localStorage.removeItem('munim_store_closures');
   };
 
   // Dynamically calculate portfolio metrics from actual entered data
@@ -476,6 +674,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         dailyReports,
         addDailyReport,
         verifyDailyReport,
+        storeClosures,
+        markStoreClosed,
+        removeStoreClosure,
+        getDateReportingState,
         stats,
         seedSampleData,
         clearAllData,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -11,18 +11,21 @@ import {
   Sparkles,
   Clock,
   Shield,
-  FileText
+  FileText,
+  XCircle,
+  X
 } from 'lucide-react';
 import { useBusiness } from '../context/BusinessContext';
 
 export const ManagerReportPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { businesses, managers, addDailyReport, dailyReports } = useBusiness();
+  const { businesses, managers, addDailyReport, dailyReports, markStoreClosed } = useBusiness();
 
   // Query params or default to first manager/business
   const urlManagerId = searchParams.get('managerId');
   const urlBizId = searchParams.get('businessId');
+  const urlDate = searchParams.get('date');
 
   const [selectedManagerId, setSelectedManagerId] = useState<string>(
     urlManagerId || managers[0]?.id || ''
@@ -38,8 +41,15 @@ export const ManagerReportPage: React.FC = () => {
 
   // Date
   const [reportDate, setReportDate] = useState(
-    new Date().toISOString().split('T')[0]
+    urlDate || new Date().toISOString().split('T')[0]
   );
+
+  // Store Closed Mode Toggle
+  const [isStoreClosedMode, setIsStoreClosedMode] = useState(false);
+  const [closedReason, setClosedReason] = useState<
+    'Weekly Off' | 'Festival / Holiday' | 'Maintenance / Renovation' | 'Emergency' | 'Other'
+  >('Weekly Off');
+  const [closedNotes, setClosedNotes] = useState('');
 
   // Inflow / Sales
   const [cashSales, setCashSales] = useState<string>('');
@@ -60,6 +70,7 @@ export const ManagerReportPage: React.FC = () => {
   const [billCount, setBillCount] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  const [submittedClosedSuccess, setSubmittedClosedSuccess] = useState(false);
 
   // Auto-calculated totals
   const totalSalesNum =
@@ -127,6 +138,22 @@ export const ManagerReportPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleClosedSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBusiness) return;
+
+    markStoreClosed({
+      businessId: selectedBusiness.id,
+      date: reportDate,
+      reason: closedReason,
+      notes: closedNotes.trim() || undefined,
+      markedBy: selectedManager?.name || 'Manager',
+    });
+
+    setSubmittedClosedSuccess(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleResetForm = () => {
     setCashSales('');
     setDigitalSales('');
@@ -140,6 +167,8 @@ export const ManagerReportPage: React.FC = () => {
     setBillCount('');
     setNotes('');
     setSubmittedSuccess(false);
+    setSubmittedClosedSuccess(false);
+    setIsStoreClosedMode(false);
   };
 
   return (
@@ -211,7 +240,7 @@ export const ManagerReportPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Success Notification */}
+      {/* Success Notification: Sales Report */}
       {submittedSuccess && (
         <div className="munim-card p-6 bg-emerald-50 border border-emerald-300 text-center space-y-3 animate-in zoom-in-95 duration-200">
           <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
@@ -225,10 +254,10 @@ export const ManagerReportPage: React.FC = () => {
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/managers')}
               className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold"
             >
-              View Owner Dashboard
+              View Managers Calendar
             </button>
             <button
               onClick={handleResetForm}
@@ -240,8 +269,147 @@ export const ManagerReportPage: React.FC = () => {
         </div>
       )}
 
-      {/* The Reporting Form */}
-      {!submittedSuccess && (
+      {/* Success Notification: Store Closed */}
+      {submittedClosedSuccess && (
+        <div className="munim-card p-6 bg-slate-50 border border-slate-300 text-center space-y-3 animate-in zoom-in-95 duration-200">
+          <div className="w-12 h-12 rounded-full bg-slate-800 text-white flex items-center justify-center mx-auto">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <h3 className="font-extrabold text-base text-slate-900">
+            Store Closure Recorded for {reportDate}
+          </h3>
+          <p className="text-xs text-slate-600 max-w-md mx-auto">
+            Reason recorded: <strong>{closedReason}</strong>. Your reporting discipline is intact, and this day will appear as <strong>⚪ Store Closed</strong> on the calendar without penalizing your streak.
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button
+              onClick={() => navigate('/managers')}
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold"
+            >
+              View Managers Calendar
+            </button>
+            <button
+              onClick={handleResetForm}
+              className="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-semibold"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Store Closed Option Switcher Banner */}
+      {!submittedSuccess && !submittedClosedSuccess && (
+        <div className="munim-card p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-2.5">
+            <Building2 className="w-5 h-5 text-slate-600 shrink-0" />
+            <div>
+              <p className="text-xs font-bold text-slate-900">
+                {isStoreClosedMode
+                  ? 'Store Was Open Today? (दुकान आज खुली थी?)'
+                  : 'Store Was Closed Today? (दुकान आज बंद थी?)'}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {isStoreClosedMode
+                  ? 'Switch back to enter sales and operational expenses'
+                  : 'Weekly off, festival holiday, or renovation? Mark it in 1 click.'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsStoreClosedMode(!isStoreClosedMode)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap self-start sm:self-auto cursor-pointer ${
+              isStoreClosedMode
+                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                : 'bg-slate-800 text-white hover:bg-slate-900'
+            }`}
+          >
+            {isStoreClosedMode ? 'Enter Sales Report' : 'Mark Store Closed'}
+          </button>
+        </div>
+      )}
+
+      {/* MODE A: Store Closed Form */}
+      {!submittedSuccess && !submittedClosedSuccess && isStoreClosedMode && (
+        <form onSubmit={handleClosedSubmit} className="munim-card p-6 space-y-4 animate-in fade-in">
+          <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900">
+                Record Store Closure
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Protect your reporting streak by logging why the shop did not open
+              </p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+              Closed Mode
+            </span>
+          </div>
+
+          <div className="space-y-3.5 text-xs">
+            <div>
+              <label htmlFor="closedDate" className="block text-slate-700 font-semibold mb-1">Date Closed</label>
+              <input
+                id="closedDate"
+                type="date"
+                required
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="closedReason" className="block text-slate-700 font-semibold mb-1">Closure Reason</label>
+              <select
+                id="closedReason"
+                value={closedReason}
+                onChange={(e) => setClosedReason(e.target.value as any)}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none bg-white font-medium"
+              >
+                <option value="Weekly Off">Weekly Off (साप्ताहिक छुट्टी)</option>
+                <option value="Festival / Holiday">Festival / Public Holiday (त्योहार / सरकारी छुट्टी)</option>
+                <option value="Maintenance / Renovation">Maintenance / Renovation (मरम्मत / काम)</option>
+                <option value="Emergency">Emergency / Unforeseen (आपातकालीन स्थिति)</option>
+                <option value="Other">Other / Owner Decision</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="closedNotes" className="block text-slate-700 font-semibold mb-1">Notes / Remarks (Optional)</label>
+              <textarea
+                id="closedNotes"
+                rows={3}
+                placeholder="e.g. Market weekly off every Tuesday..."
+                value={closedNotes}
+                onChange={(e) => setClosedNotes(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsStoreClosedMode(false)}
+              className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
+            >
+              Submit Store Closure
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* MODE B: The Standard Daily Sales & Expenses Form */}
+      {!submittedSuccess && !submittedClosedSuccess && !isStoreClosedMode && (
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Date Picker Card */}
           <div className="munim-card p-4 flex items-center justify-between">
@@ -279,10 +447,11 @@ export const ManagerReportPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="cashSales" className="block text-slate-600 font-semibold mb-1">
                   Cash Sales (₹)
                 </label>
                 <input
+                  id="cashSales"
                   type="number"
                   min="0"
                   step="any"
@@ -294,10 +463,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="digitalSales" className="block text-slate-600 font-semibold mb-1">
                   UPI / QR / Cards (₹)
                 </label>
                 <input
+                  id="digitalSales"
                   type="number"
                   min="0"
                   step="any"
@@ -309,10 +479,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="creditSales" className="block text-slate-600 font-semibold mb-1">
                   Credit / Udhar Given (₹)
                 </label>
                 <input
+                  id="creditSales"
                   type="number"
                   min="0"
                   step="any"
@@ -343,10 +514,11 @@ export const ManagerReportPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="rawMaterials" className="block text-slate-600 font-semibold mb-1">
                   Raw Materials / Stock Purchase (₹)
                 </label>
                 <input
+                  id="rawMaterials"
                   type="number"
                   min="0"
                   step="any"
@@ -358,10 +530,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="laborExpenses" className="block text-slate-600 font-semibold mb-1">
                   Daily Labor / Helper Wages (₹)
                 </label>
                 <input
+                  id="laborExpenses"
                   type="number"
                   min="0"
                   step="any"
@@ -373,10 +546,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="utilities" className="block text-slate-600 font-semibold mb-1">
                   Utilities / Fuel / Transport (₹)
                 </label>
                 <input
+                  id="utilities"
                   type="number"
                   min="0"
                   step="any"
@@ -388,10 +562,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="otherExpenses" className="block text-slate-600 font-semibold mb-1">
                   Petty Cash / Tea / Repairs (₹)
                 </label>
                 <input
+                  id="otherExpenses"
                   type="number"
                   min="0"
                   step="any"
@@ -417,10 +592,11 @@ export const ManagerReportPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="closingCash" className="block text-slate-600 font-semibold mb-1">
                   Closing Cash In Till / Register (₹)
                 </label>
                 <input
+                  id="closingCash"
                   type="number"
                   min="0"
                   step="any"
@@ -432,10 +608,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="bankDeposited" className="block text-slate-600 font-semibold mb-1">
                   Cash Deposited / Given to Owner (₹)
                 </label>
                 <input
+                  id="bankDeposited"
                   type="number"
                   min="0"
                   step="any"
@@ -474,10 +651,11 @@ export const ManagerReportPage: React.FC = () => {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="billCount" className="block text-slate-600 font-semibold mb-1">
                   Bill Count / Orders Handled (Optional)
                 </label>
                 <input
+                  id="billCount"
                   type="number"
                   placeholder="e.g. 142 orders"
                   value={billCount}
@@ -487,10 +665,11 @@ export const ManagerReportPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">
+                <label htmlFor="operationalNotes" className="block text-slate-600 font-semibold mb-1">
                   Operational Remarks / Notes
                 </label>
                 <textarea
+                  id="operationalNotes"
                   rows={3}
                   placeholder="e.g. Dinner rush was strong. Dairy vendor delivered on time. Staff attendance full."
                   value={notes}

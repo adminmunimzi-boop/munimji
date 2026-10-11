@@ -21,8 +21,9 @@ import {
   Filter
 } from 'lucide-react';
 import { useBusiness, ManagerItem, DailyReportItem } from '../context/BusinessContext';
+import { ManagerReportingCalendar } from '../components/manager/ManagerReportingCalendar';
 
-type Tab = 'managers' | 'reports' | 'discrepancies';
+type Tab = 'managers' | 'calendar' | 'reports' | 'discrepancies';
 
 export const ManagersPage: React.FC = () => {
   const { t } = useTranslation();
@@ -214,6 +215,7 @@ export const ManagersPage: React.FC = () => {
         <nav className="flex space-x-6 overflow-x-auto scrollbar-none">
           {[
             { id: 'managers', label: `Manager Directory (${managers.length})` },
+            { id: 'calendar', label: 'Reporting Calendar (कैलेंडर)' },
             { id: 'reports', label: `Daily Reports Audit (${dailyReports.length})` },
             { id: 'discrepancies', label: 'Cash Reconciliations' },
           ].map((tab) => (
@@ -337,20 +339,31 @@ export const ManagersPage: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                     <button
                       onClick={() => handleSendNudge(m)}
-                      className="flex-1 py-2 px-3 rounded-lg border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 text-slate-700 hover:text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                      className="py-2 px-2.5 rounded-lg border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 text-slate-700 hover:text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Send className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>WhatsApp Nudge</span>
+                      <span>Nudge</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedBusinessFilter(m.businessId);
+                        setActiveTab('calendar');
+                      }}
+                      className="py-2 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Calendar</span>
                     </button>
 
                     <button
                       onClick={() => navigate(`/manager/report?managerId=${m.id}`)}
-                      className="py-2 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs"
                     >
-                      <span>Report as {m.name.split(' ')[0]}</span>
+                      <span>Report</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -361,7 +374,20 @@ export const ManagersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Daily Reports Audit Stream */}
+      {/* Tab: Reporting Calendar */}
+      {activeTab === 'calendar' && (
+        <div className="space-y-4">
+          <ManagerReportingCalendar
+            businessId={
+              selectedBusinessFilter === 'all'
+                ? (businesses[0]?.id || '')
+                : selectedBusinessFilter
+            }
+          />
+        </div>
+      )}
+
+      {/* Tab 3: Daily Reports Audit Stream */}
       {activeTab === 'reports' && (
         <div className="munim-card p-6 space-y-4">
           <div className="flex items-center justify-between">
