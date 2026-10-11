@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/i18n';
+import { AddBusinessModal } from '@/components/business/AddBusinessModal';
 import {
   Plus,
   Bell,
@@ -20,11 +21,16 @@ export const AppShell: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [addBusinessModalOpen, setAddBusinessModalOpen] = useState(false);
   const currentLanguage = i18n.language as 'en' | 'hi';
 
   const toggleLanguage = () => {
     const nextLang = currentLanguage === 'en' ? 'hi' : 'en';
     changeLanguage(nextLang);
+  };
+
+  const handleBusinessCreated = (business: any) => {
+    alert(`Success: "${business.name}" created with assigned manager "${business.managerName}"!`);
   };
 
   return (
@@ -66,10 +72,10 @@ export const AppShell: React.FC = () => {
               <span>{currentLanguage === 'en' ? 'EN' : 'हिन्दी'}</span>
             </button>
 
-            {/* + Add Business Button */}
+            {/* + Add Business Button -> Triggers the exact 3-step modal */}
             <button
-              onClick={() => navigate('/businesses/new')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors"
+              onClick={() => setAddBusinessModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 stroke-[3]" />
               <span>Add Business</span>
@@ -107,7 +113,7 @@ export const AppShell: React.FC = () => {
                         <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs font-bold text-amber-900">
-                            Central Bakers: Daily Report Pending
+                            Priya Foods: Daily Report Pending
                           </p>
                           <p className="text-[11px] text-amber-700 mt-0.5">
                             Reporting cutoff is 10:00 AM IST.
@@ -139,7 +145,7 @@ export const AppShell: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-24 md:pb-12">
-        <Outlet />
+        <Outlet context={{ openAddBusinessModal: () => setAddBusinessModalOpen(true) }} />
       </main>
 
       {/* Footer matching screenshot */}
@@ -154,6 +160,13 @@ export const AppShell: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* The 3-Step Add New Business Modal */}
+      <AddBusinessModal
+        isOpen={addBusinessModalOpen}
+        onClose={() => setAddBusinessModalOpen(false)}
+        onSuccess={handleBusinessCreated}
+      />
 
       {/* Mobile Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2 flex items-center justify-around shadow-lg">
