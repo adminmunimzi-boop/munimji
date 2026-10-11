@@ -9,7 +9,8 @@ import {
   MessageCircle,
   Mail,
   CheckCircle2,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
@@ -22,7 +23,7 @@ export const AlertsPage: React.FC = () => {
   const sampleAlerts = [
     {
       id: '1',
-      business: 'Central Bakers',
+      business: 'Priya Foods',
       severity: 'watch',
       title: 'Operating Expenses Spike (+22%)',
       desc: 'Raw material procurement was 22% higher than the 14-day median.',
@@ -32,7 +33,7 @@ export const AlertsPage: React.FC = () => {
     },
     {
       id: '2',
-      business: 'Metro Textiles',
+      business: 'Shree sai fashion',
       severity: 'info',
       title: 'Consistent Daily Reporting (7-Day Streak)',
       desc: 'Manager Rajesh Kumar has submitted all 7 reports on time before 10:00 AM.',
@@ -50,10 +51,10 @@ export const AlertsPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          {t('nav.alerts')} & Action Recommendations
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Alerts & Action Recommendations
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
           Every alert connects to a practical decision and operational next step
         </p>
       </div>
@@ -63,17 +64,17 @@ export const AlertsPage: React.FC = () => {
         {sampleAlerts.map((a) => (
           <div
             key={a.id}
-            className="glass-card p-5 rounded-2xl border border-slate-800 space-y-3 relative overflow-hidden"
+            className="munim-card p-5 space-y-3 relative overflow-hidden munim-card-hover"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`p-2 rounded-xl ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                     a.severity === 'critical'
-                      ? 'bg-rose-500/20 text-rose-400'
+                      ? 'bg-rose-50 text-rose-600'
                       : a.severity === 'watch'
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : 'bg-blue-500/20 text-blue-400'
+                      ? 'bg-amber-50 text-amber-600'
+                      : 'bg-emerald-50 text-emerald-600'
                   }`}
                 >
                   {a.severity === 'critical' ? (
@@ -92,40 +93,40 @@ export const AlertsPage: React.FC = () => {
                     <span
                       className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
                         a.severity === 'critical'
-                          ? 'bg-rose-500/20 text-rose-300'
+                          ? 'bg-rose-100 text-rose-700'
                           : a.severity === 'watch'
-                          ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-blue-500/20 text-blue-300'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-emerald-100 text-emerald-700'
                       }`}
                     >
                       {a.severity}
                     </span>
                   </div>
-                  <h3 className="font-bold text-base text-white mt-0.5">{a.title}</h3>
+                  <h3 className="font-bold text-base text-slate-900 mt-0.5">{a.title}</h3>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300">{a.desc}</p>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{a.desc}</p>
 
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-              <div className="text-xs text-slate-400">
-                <strong className="text-slate-300">Financial Impact:</strong> {a.financialImpact}
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+              <div className="text-xs text-slate-500">
+                <strong className="text-slate-800">Financial Impact:</strong> {a.financialImpact}
               </div>
-              <div className="text-xs text-slate-400">
-                <strong className="text-slate-300">Recommended Action:</strong> {a.recommendedAction}
+              <div className="text-xs text-slate-500">
+                <strong className="text-slate-800">Recommended Action:</strong> {a.recommendedAction}
               </div>
             </div>
 
             {/* Actions Bar */}
             <div className="pt-2 flex flex-wrap items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 transition-colors">
+              <button className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors shadow-2xs">
                 View Business Details
               </button>
               {a.hasConsultationOption && (
                 <button
                   onClick={() => setConsultModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-xs font-semibold text-white transition-colors shadow-sm"
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-colors shadow-xs"
                 >
                   Book 1-on-1 Consultation (₹499)
                 </button>
@@ -137,40 +138,40 @@ export const AlertsPage: React.FC = () => {
 
       {/* ₹499 Consultation Booking Modal */}
       {consultModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-md w-full glass-panel p-6 rounded-2xl border border-slate-700 shadow-2xl relative animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="max-w-md w-full bg-white p-6 rounded-2xl border border-slate-200 shadow-2xl relative animate-in zoom-in-95">
             <button
               onClick={() => {
                 setConsultModalOpen(false);
                 setConsultSubmitted(false);
               }}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
             >
               <X className="w-5 h-5" />
             </button>
 
             {!consultSubmitted ? (
               <form onSubmit={handleConsultSubmit} className="space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <PhoneCall className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-white">
+                    <h3 className="font-extrabold text-base text-slate-900">
                       Book 1-on-1 Business Consultancy
                     </h3>
-                    <p className="text-xs text-amber-400 font-semibold">
+                    <p className="text-xs text-emerald-600 font-bold">
                       ₹499 Expert Diagnostic Session
                     </p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Review your business metrics, expense anomalies, and recovery targets with an experienced business advisor.
                 </p>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-300 block">
+                  <label className="text-xs font-bold text-slate-700 block">
                     Preferred Communication Channel
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -179,11 +180,11 @@ export const AlertsPage: React.FC = () => {
                       onClick={() => setContactMethod('whatsapp')}
                       className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${
                         contactMethod === 'whatsapp'
-                          ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400'
-                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                          ? 'bg-emerald-50 border-emerald-600 text-emerald-800 font-bold'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <MessageCircle className="w-4 h-4" />
+                      <MessageCircle className="w-4 h-4 text-emerald-600" />
                       <span>WhatsApp</span>
                     </button>
                     <button
@@ -191,11 +192,11 @@ export const AlertsPage: React.FC = () => {
                       onClick={() => setContactMethod('call')}
                       className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${
                         contactMethod === 'call'
-                          ? 'bg-blue-600/20 border-blue-500 text-blue-400'
-                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                          ? 'bg-emerald-50 border-emerald-600 text-emerald-800 font-bold'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <PhoneCall className="w-4 h-4" />
+                      <PhoneCall className="w-4 h-4 text-emerald-600" />
                       <span>Call Back</span>
                     </button>
                     <button
@@ -203,18 +204,18 @@ export const AlertsPage: React.FC = () => {
                       onClick={() => setContactMethod('email')}
                       className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${
                         contactMethod === 'email'
-                          ? 'bg-purple-600/20 border-purple-500 text-purple-400'
-                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                          ? 'bg-emerald-50 border-emerald-600 text-emerald-800 font-bold'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <Mail className="w-4 h-4" />
+                      <Mail className="w-4 h-4 text-emerald-600" />
                       <span>Email</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
                     Phone Number or Email *
                   </label>
                   <input
@@ -223,14 +224,14 @@ export const AlertsPage: React.FC = () => {
                     value={contactValue}
                     onChange={(e) => setContactValue(e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-600/20 transition-all"
+                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all"
                   >
                     Confirm Consultation Request (₹499)
                   </button>
@@ -241,21 +242,21 @@ export const AlertsPage: React.FC = () => {
               </form>
             ) : (
               <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6 stroke-[3]" />
                 </div>
-                <h4 className="font-extrabold text-lg text-white">
+                <h4 className="font-extrabold text-lg text-slate-900">
                   Consultation Request Received!
                 </h4>
-                <p className="text-xs text-slate-300">
-                  Our team will connect with you via {contactMethod.toUpperCase()} at {contactValue} within 2 business hours.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Our team will connect with you via {contactMethod.toUpperCase()} at <strong>{contactValue}</strong> within 2 business hours.
                 </p>
                 <button
                   onClick={() => {
                     setConsultModalOpen(false);
                     setConsultSubmitted(false);
                   }}
-                  className="px-5 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold mt-2"
+                  className="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold mt-2 hover:bg-slate-800"
                 >
                   Close
                 </button>
