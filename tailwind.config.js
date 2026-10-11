@@ -7,22 +7,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
         brand: {
-          dark: '#0f172a',
-          card: '#1e293b',
+          primary: '#16a34a', // Emerald Green matching "+ Add Business"
+          primaryHover: '#15803d',
           accent: '#10b981',
-          warning: '#f59e0b',
-          danger: '#ef4444',
-        }
+          dark: '#0f172a',
+          card: '#ffffff',
+          border: '#e2e8f0',
+          muted: '#64748b',
+          bg: '#f8fafc',
+        },
+      },
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

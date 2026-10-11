@@ -3,25 +3,23 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/i18n';
 import {
-  LayoutDashboard,
-  Building2,
-  Sparkles,
+  Plus,
   Bell,
-  User,
   Globe,
   ChevronDown,
   X,
-  MessageSquare,
-  TrendingUp,
-  AlertTriangle
+  Shield,
+  LayoutDashboard,
+  Building2,
+  Sparkles,
+  AlertTriangle,
+  User
 } from 'lucide-react';
 
 export const AppShell: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [notificationOpen, setNotificationOpen] = useState(false);
-
-  // Sample active business state (will wire to Supabase context)
   const currentLanguage = i18n.language as 'en' | 'hi';
 
   const toggleLanguage = () => {
@@ -30,133 +28,90 @@ export const AppShell: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col pb-20 md:pb-0">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 md:px-8">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans">
+      {/* Top Header matching screenshot */}
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/90 px-4 py-3 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Tagline */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 font-extrabold text-white text-lg">
+          {/* Logo */}
+          <div
+            className="flex items-center gap-3 cursor-pointer select-none"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-sm">
               म
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg tracking-tight text-white">
-                  {t('app.name')}
+              <div className="flex items-baseline">
+                <span className="font-extrabold text-lg tracking-tight text-slate-900">
+                  Munim Ji
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  Pro
+                <span className="font-extrabold text-lg tracking-tight text-emerald-600 ml-1">
+                  Ji
                 </span>
               </div>
-              <p className="text-xs text-slate-400 hidden sm:block">
-                {t('app.tagline')}
+              <p className="text-[11px] text-slate-400 font-medium -mt-1 hidden sm:block">
+                Your Personal Business Manager
               </p>
             </div>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`
-              }
-            >
-              {t('nav.home')}
-            </NavLink>
-            <NavLink
-              to="/businesses"
-              className={({ isActive }) =>
-                `px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`
-              }
-            >
-              {t('nav.businesses')}
-            </NavLink>
-            <NavLink
-              to="/munim-ai"
-              className={({ isActive }) =>
-                `px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`
-              }
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              {t('nav.munim_ai')}
-            </NavLink>
-            <NavLink
-              to="/alerts"
-              className={({ isActive }) =>
-                `px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`
-              }
-            >
-              {t('nav.alerts')}
-            </NavLink>
-          </nav>
-
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Header Navigation */}
+          <div className="flex items-center gap-3 sm:gap-4">
             {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 transition-colors"
-              title="Toggle English / हिंदी"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
             >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <Globe className="w-3.5 h-3.5 text-slate-500" />
               <span>{currentLanguage === 'en' ? 'EN' : 'हिन्दी'}</span>
             </button>
 
-            {/* In-app Notification Bell (Modal Trigger) */}
+            {/* + Add Business Button */}
+            <button
+              onClick={() => navigate('/businesses/new')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Add Business</span>
+            </button>
+
+            {/* Notification Bell */}
             <div className="relative">
               <button
                 onClick={() => setNotificationOpen(!notificationOpen)}
-                className="relative p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 transition-colors"
+                className="relative p-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
               </button>
 
-              {/* Notification Slide-Down Modal (Never a separate page!) */}
+              {/* Notification Slide-Down Modal */}
               {notificationOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 glass-panel rounded-2xl shadow-2xl p-4 border border-slate-700 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl p-4 border border-slate-200 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-blue-400" />
-                      <h4 className="font-bold text-sm text-white">Notifications</h4>
+                      <Bell className="w-4 h-4 text-emerald-600" />
+                      <h4 className="font-bold text-sm text-slate-900">Notifications</h4>
                     </div>
                     <button
                       onClick={() => setNotificationOpen(false)}
-                      className="p-1 rounded-lg hover:bg-slate-800 text-slate-400"
+                      className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="py-2 space-y-2.5 max-h-80 overflow-y-auto">
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer">
+                  <div className="py-2 space-y-2 max-h-80 overflow-y-auto">
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/60 cursor-pointer">
                       <div className="flex items-start gap-2.5">
-                        <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5">
-                          <AlertTriangle className="w-4 h-4" />
-                        </div>
+                        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                         <div>
-                          <p className="text-xs font-semibold text-white">Manager Report Pending</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
-                            Daily health report cutoff is 10:00 AM IST.
+                          <p className="text-xs font-bold text-amber-900">
+                            Central Bakers: Daily Report Pending
                           </p>
-                          <span className="text-[10px] text-slate-500 mt-1 inline-block">Today</span>
+                          <p className="text-[11px] text-amber-700 mt-0.5">
+                            Reporting cutoff is 10:00 AM IST.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -165,94 +120,89 @@ export const AppShell: React.FC = () => {
               )}
             </div>
 
-            {/* Profile Avatar */}
-            <button
+            {/* User Profile Avatar Pill */}
+            <div
               onClick={() => navigate('/profile')}
-              className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
+              className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
             >
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-xs text-white">
+              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
                 A
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
-            </button>
+              <span className="text-xs font-semibold text-slate-700 hidden sm:block">
+                Amit
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-24 md:pb-12">
         <Outlet />
       </main>
 
-      {/* Floating Ask Munim Ji Button (Mobile) */}
-      <button
-        onClick={() => navigate('/munim-ai')}
-        className="md:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-xl shadow-blue-600/30 border border-blue-400/30"
-      >
-        <Sparkles className="w-4 h-4 text-amber-300" />
-        <span>Ask Munim Ji</span>
-      </button>
+      {/* Footer matching screenshot */}
+      <footer className="mt-auto border-t border-slate-200 bg-white py-6 px-4 text-center">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <Shield className="w-3.5 h-3.5 text-slate-400" />
+            <span>Your data is private. Munim Ji learns patterns, not your secrets.</span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            © 2024 Munim Ji – Your Personal Business Manager
+          </div>
+        </div>
+      </footer>
 
-      {/* Mobile Bottom Navigation Bar (Non-negotiable) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-800/80 px-2 py-2 flex items-center justify-around">
+      {/* Mobile Navigation Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2 flex items-center justify-around shadow-lg">
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg ${
+              isActive ? 'text-emerald-600 font-bold' : 'text-slate-500 hover:text-slate-800'
             }`
           }
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px]">{t('nav.home')}</span>
+          <span className="text-[10px]">Dashboard</span>
         </NavLink>
 
         <NavLink
           to="/businesses"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg ${
+              isActive ? 'text-emerald-600 font-bold' : 'text-slate-500 hover:text-slate-800'
             }`
           }
         >
           <Building2 className="w-5 h-5" />
-          <span className="text-[10px]">{t('nav.businesses')}</span>
+          <span className="text-[10px]">Businesses</span>
         </NavLink>
 
         <NavLink
           to="/munim-ai"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg ${
+              isActive ? 'text-emerald-600 font-bold' : 'text-slate-500 hover:text-slate-800'
             }`
           }
         >
-          <Sparkles className="w-5 h-5 text-amber-400" />
-          <span className="text-[10px]">{t('nav.munim_ai')}</span>
-        </NavLink>
-
-        <NavLink
-          to="/alerts"
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-            }`
-          }
-        >
-          <Bell className="w-5 h-5" />
-          <span className="text-[10px]">{t('nav.alerts')}</span>
+          <Sparkles className="w-5 h-5 text-emerald-600" />
+          <span className="text-[10px]">Munim AI</span>
         </NavLink>
 
         <NavLink
           to="/profile"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              isActive ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg ${
+              isActive ? 'text-emerald-600 font-bold' : 'text-slate-500 hover:text-slate-800'
             }`
           }
         >
           <User className="w-5 h-5" />
-          <span className="text-[10px]">{t('nav.profile')}</span>
+          <span className="text-[10px]">Profile</span>
         </NavLink>
       </nav>
     </div>

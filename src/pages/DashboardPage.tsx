@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
-  DollarSign,
-  AlertTriangle,
-  Sparkles,
-  Info,
+  Percent,
+  Activity,
+  AlertCircle,
+  HelpCircle,
   ChevronRight,
-  ArrowUpRight,
-  ShieldCheck,
+  ArrowRight,
+  Sparkles,
+  Trophy,
+  AlertTriangle,
+  Mic,
+  Send,
+  Lock,
   Building2,
-  Calendar
+  ChevronDown,
+  Info,
+  CheckCircle2,
+  ExternalLink
 } from 'lucide-react';
 import {
   BarChart,
@@ -23,291 +31,646 @@ import {
   Legend
 } from 'recharts';
 
-type ChartMode = 'trend' | 'by_business' | 'capital';
+type ChartMode = 'trend' | 'by_business' | 'allocation';
 
 export const DashboardPage: React.FC = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [chartMode, setChartMode] = useState<ChartMode>('trend');
   const [activeDefinition, setActiveDefinition] = useState<string | null>(null);
+  const [selectedBusinessFilter, setSelectedBusinessFilter] = useState('All Businesses');
+  const [userQuery, setUserQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
 
-  // Mock data for initial rendering
+  // Chart data matching the screenshot
   const trendData = [
-    { name: 'Mon', revenue: 45000, profit: 12000, expenses: 33000 },
-    { name: 'Tue', revenue: 52000, profit: 16000, expenses: 36000 },
-    { name: 'Wed', revenue: 48000, profit: 14000, expenses: 34000 },
-    { name: 'Thu', revenue: 61000, profit: 21000, expenses: 40000 },
-    { name: 'Fri', revenue: 75000, profit: 28000, expenses: 47000 },
-    { name: 'Sat', revenue: 92000, profit: 37000, expenses: 55000 },
-    { name: 'Sun', revenue: 84000, profit: 32000, expenses: 52000 },
+    { month: 'Jan', revenue: 42, profit: 21 },
+    { month: 'Feb', revenue: 58, profit: 8 },
+    { month: 'Mar', revenue: 60, profit: 8 },
+    { month: 'Apr', revenue: 52, profit: 9 },
+    { month: 'May', revenue: 52, profit: 6 },
+    { month: 'Jun', revenue: 45, profit: 7 },
   ];
 
-  const businessProfitData = [
-    { name: 'Central Bakers', profitLakhs: 2.4, color: '#3B82F6' },
-    { name: 'Metro Textiles', profitLakhs: 1.8, color: '#10B981' },
-    { name: 'Apex Pharmacy', profitLakhs: 3.1, color: '#8B5CF6' },
+  const businessData = [
+    { name: 'Priya Foods', revenue: 50, profit: 5.5 },
+    { name: 'Shree sai fashion', revenue: 25, profit: 3.0 },
   ];
 
-  const capitalAllocationData = [
-    { name: 'Central Bakers', capitalLakhs: 15.0, color: '#3B82F6' },
-    { name: 'Metro Textiles', capitalLakhs: 25.0, color: '#10B981' },
-    { name: 'Apex Pharmacy', capitalLakhs: 18.0, color: '#8B5CF6' },
+  const allocationData = [
+    { name: 'Priya Foods', capital: 50 },
+    { name: 'Shree sai fashion', capital: 10 },
   ];
 
-  const formatCurrencyINR = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const quickQuestions = [
+    'Why is profit down this month?',
+    'Which business should I invest more in?',
+    'Is it the right time to expand?',
+    'Show me cash flow concerns',
+    "Compare my businesses' performance",
+  ];
+
+  const handleAskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userQuery.trim()) return;
+    setAiResponse(
+      `Analyzing ${selectedBusinessFilter}: Your current portfolio shows steady operational profit of ₹8.5L across Priya Foods and Shree sai fashion. Priya Foods is your most capital-efficient business with stable margins.`
+    );
+  };
+
+  const handleChipClick = (q: string) => {
+    setUserQuery(q);
+    setAiResponse(
+      `Munim Ji analysis for "${q}": Based on your last 6 months of daily health reports, Priya Foods has generated higher steady cash flows, while Shree sai fashion shows higher potential for retail expansion.`
+    );
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Top Banner / Heading */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* 1. Header Title & Subtitle */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            {t('dashboard.title')}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Your Business Portfolio – Today
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            {t('dashboard.subtitle')}
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Complete overview of all your investments
           </p>
         </div>
-
-        {/* Quick Date Indicator */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 self-start sm:self-auto">
-          <Calendar className="w-4 h-4 text-blue-400" />
-          <span>{new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        <div className="text-xs text-slate-400 font-medium">
+          Last updated: Just now
         </div>
       </div>
 
-      {/* Honest AI Calibration / Learning Banner */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/60 via-indigo-950/40 to-slate-900 border border-blue-500/30 flex items-start sm:items-center gap-3.5">
-        <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
-          <Sparkles className="w-5 h-5 text-amber-300" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className="text-sm font-bold text-white">
-              {t('dashboard.learning_period')}
-            </h4>
-            <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              Calibration Active
-            </span>
-          </div>
-          <p className="text-xs text-slate-300 mt-0.5">
-            {t('dashboard.learning_period_desc')}
-          </p>
-        </div>
-      </div>
-
-      {/* KPI Cards Grid */}
+      {/* 2. Top 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Invested Capital */}
-        <div className="glass-card p-5 rounded-2xl relative overflow-hidden group">
+        <div className="munim-card p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-              {t('dashboard.total_invested')}
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+              <span>Total Invested Capital</span>
               <button
-                onClick={() => setActiveDefinition(activeDefinition === 'recovery' ? null : 'recovery')}
-                className="text-slate-500 hover:text-slate-300"
+                onClick={() => setActiveDefinition(activeDefinition === 'capital' ? null : 'capital')}
+                className="text-slate-400 hover:text-slate-600"
               >
-                <Info className="w-3.5 h-3.5" />
+                <HelpCircle className="w-3.5 h-3.5" />
               </button>
-            </span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-              <DollarSign className="w-4 h-4" />
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-xs font-bold">
+              ₹
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-white">
-              {formatCurrencyINR(5800000)}
+            <div className="text-2xl font-extrabold text-emerald-600 tracking-tight">
+              ₹60000.00 Cr
             </div>
-            <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span>Across 3 active businesses</span>
-            </div>
+            <p className="text-xs text-slate-400 mt-1">Across 2 businesses</p>
           </div>
         </div>
 
-        {/* Current Revenue */}
-        <div className="glass-card p-5 rounded-2xl relative overflow-hidden">
+        {/* Current Monthly Profit */}
+        <div className="munim-card p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-              {t('dashboard.current_revenue')}
-              <button
-                onClick={() => setActiveDefinition(activeDefinition === 'revenue' ? null : 'revenue')}
-                className="text-slate-500 hover:text-slate-300"
-              >
-                <Info className="w-3.5 h-3.5" />
-              </button>
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold text-emerald-400">
-              {formatCurrencyINR(456000)}
-            </div>
-            <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span className="text-emerald-400 font-semibold">+14.2%</span>
-              <span>vs previous 7 days</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Current Estimated Profit */}
-        <div className="glass-card p-5 rounded-2xl relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-              {t('dashboard.current_profit')}
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+              <span>Current Monthly Profit</span>
               <button
                 onClick={() => setActiveDefinition(activeDefinition === 'profit' ? null : 'profit')}
-                className="text-slate-500 hover:text-slate-300"
+                className="text-slate-400 hover:text-slate-600"
               >
-                <Info className="w-3.5 h-3.5" />
+                <HelpCircle className="w-3.5 h-3.5" />
               </button>
-            </span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+            </div>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-white">
-              {formatCurrencyINR(160000)}
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-extrabold text-emerald-600 tracking-tight">
+                ₹8.5 L
+              </div>
+              <span className="inline-flex items-center text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                ↗ 12%
+              </span>
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              <span>Operating Profit margin: ~35%</span>
-            </div>
+            <p className="text-xs text-slate-400 mt-1">vs last month</p>
           </div>
         </div>
 
-        {/* Critical Businesses */}
-        <div className="glass-card p-5 rounded-2xl relative overflow-hidden">
+        {/* Average ROI */}
+        <div className="munim-card p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">
-              {t('dashboard.critical_businesses')}
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+              <span>Average ROI</span>
+              <button
+                onClick={() => setActiveDefinition(activeDefinition === 'roi' ? null : 'roi')}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <Percent className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-emerald-400">
-              0 Critical
+            <div className="text-2xl font-extrabold text-emerald-600 tracking-tight">
+              0.0%
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              <span>All 3 businesses healthy & stable</span>
+            <p className="text-xs text-slate-400 mt-1">Across portfolio</p>
+          </div>
+        </div>
+
+        {/* Portfolio Health */}
+        <div className="munim-card p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">
+              Portfolio Health
+            </span>
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+              <Activity className="w-4 h-4" />
             </div>
+          </div>
+          <div className="mt-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span>Stable</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-2">Based on Munim Ji analysis</p>
           </div>
         </div>
       </div>
 
-      {/* Definition Popup Modal (if an (i) icon is clicked) */}
+      {/* Definition Popup Helper */}
       {activeDefinition && (
-        <div className="p-3.5 rounded-xl bg-blue-950/80 border border-blue-500/30 flex items-start justify-between text-xs text-blue-200 animate-in fade-in">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-            <span>{t(`definitions.${activeDefinition}`)}</span>
+        <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>
+              {activeDefinition === 'capital' && 'Total capital invested across all setup, equipment, and working funds.'}
+              {activeDefinition === 'profit' && 'Estimated operating profit calculated as total monthly revenues minus expenses.'}
+              {activeDefinition === 'roi' && 'Return on Investment percentage calculated from cumulative eligible net profit.'}
+            </span>
           </div>
           <button
             onClick={() => setActiveDefinition(null)}
-            className="text-blue-400 hover:text-white font-bold ml-2"
+            className="text-slate-400 hover:text-slate-700 font-bold ml-2"
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* The Single Vertical Bar Chart with Mode Switch */}
-      <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-slate-800">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 border-b border-slate-800">
-          <div>
-            <h3 className="font-bold text-base text-white">
-              {chartMode === 'trend' && t('chart.mode_revenue_profit')}
-              {chartMode === 'by_business' && t('chart.mode_profit_by_business')}
-              {chartMode === 'capital' && t('chart.mode_capital')}
+      {/* 3. Munim Ji's Priority Alert Banner */}
+      <div className="munim-card p-4 bg-amber-50/70 border border-amber-200/80 flex items-center gap-3">
+        <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+          <AlertCircle className="w-4 h-4" />
+        </div>
+        <div className="text-xs sm:text-sm text-slate-800">
+          <strong className="font-bold text-slate-900 mr-2">
+            Munim Ji's Priority Alert
+          </strong>
+          <span>Your portfolio is performing well. Keep monitoring key metrics.</span>
+        </div>
+      </div>
+
+      {/* 4. Chart: Revenue & Profit Trend */}
+      <div className="munim-card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-extrabold text-base text-slate-900">
+              Revenue & Profit Trend (₹L/Month)
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Live updates based on manager reports
-            </p>
+            <button className="text-slate-400 hover:text-slate-600">
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Chart Mode Switch Buttons */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start sm:self-auto">
+          {/* Switcher: Trend | By Business | Allocation */}
+          <div className="inline-flex p-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-semibold self-start sm:self-auto">
             <button
               onClick={() => setChartMode('trend')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1 rounded-md transition-all ${
                 chartMode === 'trend'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Trends
+              Trend
             </button>
             <button
               onClick={() => setChartMode('by_business')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1 rounded-md transition-all ${
                 chartMode === 'by_business'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               By Business
             </button>
             <button
-              onClick={() => setChartMode('capital')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                chartMode === 'capital'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setChartMode('allocation')}
+              className={`px-3 py-1 rounded-md transition-all ${
+                chartMode === 'allocation'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Capital
+              Allocation
             </button>
           </div>
         </div>
 
         {/* Chart Viewport */}
-        <div className="h-72 w-full mt-4">
+        <div className="h-64 sm:h-72 w-full mt-2">
           <ResponsiveContainer width="100%" height="100%">
             {chartMode === 'trend' ? (
-              <BarChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(val) => `₹${val / 1000}k`} />
+              <BarChart data={trendData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                  formatter={(val: number) => [formatCurrencyINR(val), '']}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(val: number) => [`₹${val} Lakhs`, '']}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="revenue" fill="#3B82F6" name={t('chart.revenue')} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="profit" fill="#10B981" name={t('chart.profit')} radius={[4, 4, 0, 0]} />
+                <Legend
+                  wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }}
+                  iconType="square"
+                />
+                <Bar dataKey="revenue" name="Revenue" fill="#15803d" radius={[4, 4, 0, 0]} maxBarSize={45} />
+                <Bar dataKey="profit" name="Profit" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={45} />
               </BarChart>
             ) : chartMode === 'by_business' ? (
-              <BarChart data={businessProfitData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(val) => `₹${val}L`} />
+              <BarChart data={businessData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                  formatter={(val: number) => [`₹${val} Lakhs`, 'Monthly Profit']}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }}
                 />
-                <Bar dataKey="profitLakhs" fill="#10B981" radius={[4, 4, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }} />
+                <Bar dataKey="revenue" name="Monthly Revenue" fill="#15803d" radius={[4, 4, 0, 0]} maxBarSize={45} />
+                <Bar dataKey="profit" name="Monthly Profit" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={45} />
               </BarChart>
             ) : (
-              <BarChart data={capitalAllocationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(val) => `₹${val}L`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                  formatter={(val: number) => [`₹${val} Lakhs`, 'Initial Capital']}
-                />
-                <Bar dataKey="capitalLakhs" fill="#6366F1" radius={[4, 4, 0, 0]} />
+              <BarChart data={allocationData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}L`} />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }} />
+                <Bar dataKey="capital" name="Invested Capital" fill="#15803d" radius={[4, 4, 0, 0]} maxBarSize={45} />
               </BarChart>
             )}
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 5. Section: Your Businesses – Journey Status */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            Your Businesses – Journey Status
+          </h2>
+          <span className="text-xs text-slate-400 font-medium">2 businesses</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Business 1: Priya Foods */}
+          <div className="munim-card p-5 munim-card-hover">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">Priya Foods</h3>
+                  <p className="text-xs text-slate-400">Food Beverage</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                Stable
+              </span>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-slate-400 block">Invested</span>
+                <span className="font-bold text-slate-900 text-sm">₹500000.0L</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Current ROI</span>
+                <span className="font-bold text-slate-900 text-sm">0%</span>
+              </div>
+            </div>
+
+            {/* Breakeven Progress */}
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <span>Breakeven Progress</span>
+                <span className="font-bold">0%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-600 rounded-full w-0" />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button
+                onClick={() => navigate('/businesses/1')}
+                className="flex-1 py-2 px-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>View Journey</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => navigate('/munim-ai')}
+                className="py-2 px-4 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>Ask</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Business 2: Shree sai fashion */}
+          <div className="munim-card p-5 munim-card-hover">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">Shree sai fashion</h3>
+                  <p className="text-xs text-slate-400">Other</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                Stable
+              </span>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-slate-400 block">Invested</span>
+                <span className="font-bold text-slate-900 text-sm">₹100000.0L</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Current ROI</span>
+                <span className="font-bold text-slate-900 text-sm">0%</span>
+              </div>
+            </div>
+
+            {/* Breakeven Progress */}
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <span>Breakeven Progress</span>
+                <span className="font-bold">0%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-600 rounded-full w-0" />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button
+                onClick={() => navigate('/businesses/2')}
+                className="flex-1 py-2 px-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>View Journey</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => navigate('/munim-ai')}
+                className="py-2 px-4 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>Ask</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Section: What Munim Ji Recommends Today */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            What Munim Ji Recommends Today
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Actionable insights for your portfolio
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Recommendation 1 */}
+          <div className="munim-card p-5 munim-card-hover space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-semibold text-slate-400 block">
+                  Priya foods
+                </span>
+                <h3 className="font-bold text-base text-slate-900 mt-0.5">
+                  Growth opportunity identified
+                </h3>
+              </div>
+              <div className="w-7 h-7 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-slate-400 block text-[11px]">Monthly Impact</span>
+                <span className="font-bold text-slate-900 text-sm">₹250000.0L</span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                <Info className="w-3.5 h-3.5 text-slate-400" />
+                <span>90% confidence</span>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600">
+              <span className="text-slate-400 block text-[11px]">Recommended Action</span>
+              <span>Consider expanding to new market segments</span>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-md bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                High Priority
+              </span>
+              <button
+                onClick={() => navigate('/alerts')}
+                className="text-xs font-bold text-slate-800 hover:text-emerald-600 flex items-center gap-1 transition-colors"
+              >
+                <span>Take Action</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Recommendation 2 */}
+          <div className="munim-card p-5 munim-card-hover space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-semibold text-slate-400 block">
+                  Shree sai fashion
+                </span>
+                <h3 className="font-bold text-base text-slate-900 mt-0.5">
+                  Growth opportunity identified
+                </h3>
+              </div>
+              <div className="w-7 h-7 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-slate-400 block text-[11px]">Monthly Impact</span>
+                <span className="font-bold text-slate-900 text-sm">₹50000.0L</span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                <Info className="w-3.5 h-3.5 text-slate-400" />
+                <span>80% confidence</span>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600">
+              <span className="text-slate-400 block text-[11px]">Recommended Action</span>
+              <span>Consider expanding to new market segments</span>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-md bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider">
+                Medium
+              </span>
+              <button
+                onClick={() => navigate('/alerts')}
+                className="text-xs font-bold text-slate-800 hover:text-emerald-600 flex items-center gap-1 transition-colors"
+              >
+                <span>Take Action</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. Section: Portfolio Insights */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+          Portfolio Insights
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Best Performing */}
+          <div className="munim-card p-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Trophy className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 block">Best Performing</span>
+              <h4 className="font-bold text-sm text-slate-900">Priya Foods</h4>
+              <span className="text-xs text-emerald-600 font-bold">0% ROI</span>
+            </div>
+          </div>
+
+          {/* Needs Attention */}
+          <div className="munim-card p-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 block">Needs Attention</span>
+              <h4 className="font-bold text-sm text-slate-900">Shree sai fashion</h4>
+              <span className="text-xs text-rose-500 font-semibold">Monitor closely</span>
+            </div>
+          </div>
+
+          {/* Most Capital Efficient */}
+          <div className="munim-card p-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 block">Most Capital Efficient</span>
+              <h4 className="font-bold text-sm text-slate-900">Priya Foods</h4>
+              <span className="text-xs text-emerald-600 font-bold">0.00 ROI/Lakh</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Section: Ask Munim Ji */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs">
+            <Sparkles className="w-3.5 h-3.5" />
+          </div>
+          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            Ask Munim Ji
+          </h2>
+        </div>
+
+        <div className="munim-card p-5 sm:p-6 space-y-4">
+          {/* Business Selector Pill */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white shadow-xs cursor-pointer">
+            <Building2 className="w-3.5 h-3.5 text-slate-500" />
+            <span>{selectedBusinessFilter}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </div>
+
+          {/* Suggestion Chips */}
+          <div className="flex flex-wrap gap-2">
+            {quickQuestions.map((q, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChipClick(q)}
+                className="px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-medium transition-colors"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+
+          {/* AI Response Display (if activated) */}
+          {aiResponse && (
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-slate-800 leading-relaxed space-y-2 animate-in fade-in">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Munim Ji Insights:</span>
+              </div>
+              <p>{aiResponse}</p>
+            </div>
+          )}
+
+          {/* Input Box */}
+          <form onSubmit={handleAskSubmit} className="relative flex items-center">
+            <input
+              type="text"
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+              placeholder="Ask Munim Ji about any of your businesses..."
+              className="w-full py-3.5 pl-4 pr-24 rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 transition-all placeholder:text-slate-400"
+            />
+            <div className="absolute right-2 flex items-center gap-1.5">
+              <button
+                type="button"
+                className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                title="Voice input (planned)"
+              >
+                <Mic className="w-4 h-4" />
+              </button>
+              <button
+                type="submit"
+                className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
