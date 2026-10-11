@@ -1,0 +1,451 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=claude:viewport-fit-sides content=cover><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>.md-table{overflow-x:auto}@media print{.md-table{overflow-x:visible}}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Munim Ji — Complete Build &amp; Handover Guide</h1>
+<p><strong>Product:</strong> Munim Ji — Your Personal Business Manager
+<strong>Tagline:</strong> Your Personal Business Manager
+<strong>Category:</strong> Business Management + Business Intelligence + AI Guidance
+<strong>Primary market:</strong> Indian business owners, SMEs and multi-business owners
+<strong>Domain:</strong> MyMunimJee.com
+<strong>Backend:</strong> Supabase (Auth, Postgres, RLS, Storage, Realtime, Edge Functions)
+<strong>Build tool:</strong> Lovable (frontend, wired directly to Supabase)</p>
+<p>This document is written to be handed to a developer as-is. It covers what to build, why, in what order, with what tools, and how to know each phase is actually done.</p>
+<hr>
+<h2>1. What Munim Ji Is</h2>
+<p>An owner running one or several businesses often has information scattered across managers, accountants, spreadsheets, messaging, and different outlets. Munim Ji becomes the owner's central business control and intelligence system: managers submit structured daily reports, the platform computes business health from that data, and an AI layer (Munim Ji) turns it into plain-language verdicts and a recommended next action.</p>
+<p><strong>Core philosophy:</strong> Managers provide the data. Munim Ji understands the data. The owner makes better decisions.</p>
+<p><strong>What it is NOT:</strong></p>
+<ul>
+<li>Not a POS — no billing, barcode, SKU-level inventory, or GST billing at this stage.</li>
+<li>Not just a CRM — the manager side is a Business Health Reporting Tool for structured recurring data capture, not a sales pipeline tool.</li>
+<li>Not a generic AI chatbot — it answers using the owner's own authorized business data, not generic business advice.</li>
+</ul>
+<hr>
+<h2>2. User Journeys</h2>
+<h3>2.1 Business Owner Journey (end to end)</h3>
+<pre><code>Account → Business → Investment/Snapshot → Operations → Reports → Analysis → Action → Growth
+</code></pre>
+<ol>
+<li>Create account, set up profile (photo, name, email, phone, language preference).</li>
+<li>Create a business — and immediately answer <strong>New or Existing</strong> (see Section 4; this is the single most important fork in the entire product).</li>
+<li><strong>If New:</strong> define the business's starting point — full investment and cost structure.
+<strong>If Existing:</strong> complete the short Business Snapshot instead.</li>
+<li>Create and assign a manager to the business.</li>
+<li>Manager starts daily reporting.</li>
+<li>Data accumulates in Supabase.</li>
+<li>Munim Ji analyses the business (once enough data exists — see the Learning Period in Section 4).</li>
+<li>Owner sees business health on the dashboard.</li>
+<li>Alerts and recommendations appear as conditions warrant.</li>
+<li>Owner takes action — views detail, resolves an issue, or books a consultation.</li>
+<li>Results are tracked over time: investment recovery, break-even progress, growth/expansion readiness.</li>
+</ol>
+<h3>2.2 Manager Journey</h3>
+<ol>
+<li>Receives login credentials from the owner (manager accounts are owner-created, not self-service).</li>
+<li>Logs in — sees only their assigned business(es), never the owner's strategic dashboard.</li>
+<li>Submits the daily Business Health Report (see Section 5.2 for the exact fields).</li>
+<li>Can view their own reporting history/calendar.</li>
+<li>Has no access to investment figures, AI verdicts, or other businesses on the platform.</li>
+</ol>
+<h3>2.3 Multi-Business Concept</h3>
+<p>A single owner can run several businesses, each fully independent:</p>
+<pre><code>Owner → Business A / Business B / Business C → individual reporting + portfolio intelligence
+</code></pre>
+<p>Each business has its own managers, reports, investment information, performance history, alerts, and Munim Ji analysis. The owner additionally sees a combined portfolio view across all of them.</p>
+<hr>
+<h2>3. Scope</h2>
+<h3>In scope (MVP)</h3>
+<ul>
+<li>Owner registration/login, profile (with photo upload/crop)</li>
+<li>Multiple business creation, each with full setup (name, type, industry, location, start date, ownership, outlets, objective)</li>
+<li><strong>New vs Existing business branch at creation</strong> — see Section 4, this governs the rest of the setup flow</li>
+<li>Investment &amp; financial starting point per business: initial investment, owner capital, additional investment, working capital, setup/equipment costs, deposit/security, initial inventory investment, monthly fixed expenses, expected investment recovery period, break-even period — required for New businesses; optional/derived from the Snapshot for Existing ones</li>
+<li><strong>AI &quot;learning period&quot; state</strong> — see Section 4</li>
+<li>Manager creation, login, and account management (activate/deactivate, reassign, reset password) — managers only access their assigned business and reporting functions</li>
+<li>Daily Business Health Report submission (revenue, expenses, cash/bank collection, outstanding amounts, major expenses, operational issues, notes)</li>
+<li>Manager reporting calendar (green = submitted, red = missed, yellow = partial)</li>
+<li>Owner Dashboard (&quot;Master Control Room&quot;): total invested capital, current revenue/profit, business health, recovery progress, break-even progress, critical businesses, recent reports, Munim Ji recommendations, notifications</li>
+<li>One vertical bar chart with a mode switch (Revenue &amp; Profit Trend / Profit by Business / Capital Allocation) — not multiple chart types</li>
+<li>Consistent per-business color coding across the dashboard</li>
+<li>Business Detail page with five tabs: Overview, Performance, Financial Journey, Operations, History</li>
+<li>Munim Ji AI: Ask Munim Ji (text first; voice architecture planned, not required at launch) + Verdict Engine (status: Growing / Stable-Watch / Critical; reason; financial impact; recommended action; priority; confidence)</li>
+<li>Take Action system — every alert leads to a real next step, up to and including booking a consultation</li>
+<li>₹499 paid 1-on-1 consultation flow (WhatsApp / email / callback request), recorded in Supabase</li>
+<li>In-app notification bell (popup, not a separate page)</li>
+<li>Definition popups for business terms (English + Hindi)</li>
+<li>English ↔ Hindi language toggle across the entire app (numbers never translate)</li>
+<li>PDF reports (All Businesses Summary or Specific Business), with a permanent non-removable &quot;Generated by Munim Ji – Confidential&quot; watermark</li>
+<li>Mobile-first design: bottom nav (Home / Businesses / Munim Ji / Alerts / Profile), swipeable business cards, floating Ask Munim Ji button</li>
+</ul>
+<h3>Explicitly out of scope (do not build)</h3>
+<ul>
+<li>Full POS, billing, barcode, or GST billing systems</li>
+<li>Complex or SKU-level inventory management</li>
+<li>Multiple chart types / overly complex graphing</li>
+<li>Any generic accounting-software replacement</li>
+</ul>
+<p>These may be reconsidered later, but only if they directly serve the long-term Munim Ji strategy — they should not creep into this build.</p>
+<h3>On the roadmap, not required for launch</h3>
+<ul>
+<li><strong>CSV import of historical records</strong> for existing-business owners who already keep informal records (commonly in Excel) — a simple template for the last 6–12 months of monthly totals. The Business Snapshot (Section 4) covers launch-day needs for this segment; CSV import is a later refinement.</li>
+<li>Voice interaction for Ask Munim Ji (&quot;Hi Munim Ji&quot; wake phrase) — architecture should allow for it, but browser/OS background-microphone restrictions mean it should not be promised as working at launch.</li>
+<li>Browser/mobile push notifications — the in-app bell is sufficient for MVP; build notification architecture in a way that supports push later without rework.</li>
+</ul>
+<hr>
+<h2>4. Locked Decision: New vs Existing Business Onboarding</h2>
+<p><strong>The problem:</strong> The product as originally specced assumes every business starts at zero — Day 1 investment entered fresh, recovery and break-even tracked from a known starting point. This works beautifully for a brand-new business and breaks for an owner who has run a business for years, since nobody will backfill years of daily history, and metrics like &quot;investment recovery&quot; may already be irrelevant to them.</p>
+<p><strong>The reframe:</strong> This is not a reason to treat existing businesses as a worse fit. The core pain Munim Ji solves — &quot;I can't be in three places at once, and my managers tell me whatever they want&quot; — is felt <em>more</em> by an established multi-outlet owner than by someone who just opened their first shop. The fix is not to fake historical data; it's to stop making investment-recovery the mandatory front door for a segment it doesn't apply to.</p>
+<p><strong>The solution — implemented as a fork at business creation:</strong></p>
+<ul>
+<li>
+<p><strong>New business:</strong> full Day 1 setup as specified in Section 3 — investment entered fresh, recovery/break-even tracked from a true zero.</p>
+</li>
+<li>
+<p><strong>Existing business:</strong> a short <strong>Business Snapshot</strong> (5–6 questions, not a data backfill) instead of reconstructing history:</p>
+<ul>
+<li>Roughly how long has the business run?</li>
+<li>Is it currently profitable? (self-reported)</li>
+<li>Typical monthly revenue range</li>
+<li>Typical monthly expense range</li>
+<li>Has the original investment already been recovered? (yes/no)</li>
+<li>Any known ongoing problem area?</li>
+</ul>
+<p>If investment is marked as already-recovered, that metric <strong>retires from the dashboard</strong> for this business — it is not shown as zero or stale, it simply doesn't display.</p>
+</li>
+</ul>
+<p><strong>AI Learning Period (applies to every business, matters most for Existing ones):</strong> For roughly the first 2–4 weeks of real daily reports, Munim Ji shows an honest &quot;still learning your business's rhythm&quot; message instead of issuing a confident Growing/Stable-Watch/Critical verdict. A wrong early verdict off three days of data is worse than an honest &quot;still calibrating&quot; message — especially for a skeptical, experienced owner who already knows their business better than a three-day-old app.</p>
+<p><strong>Data model impact:</strong></p>
+<ul>
+<li><code>businesses</code> gets a <code>business_start_type</code> field (<code>new</code> / <code>existing</code>).</li>
+<li>New table: <code>business_baseline_snapshots</code> — one row per Existing business, holding the Snapshot answers.</li>
+</ul>
+<hr>
+<h2>5. Feature Detail by Area</h2>
+<h3>5.1 Business Creation</h3>
+<p>Fields: business name, type/category, industry, location, start date, ownership type, number of outlets, business description, business objective — plus the New/Existing fork from Section 4.</p>
+<h3>5.2 Daily Business Health Report (manager-submitted)</h3>
+<ul>
+<li>Reporting date</li>
+<li>Daily revenue/sales</li>
+<li>Daily expenses</li>
+<li>Cash collected</li>
+<li>Bank/digital collection</li>
+<li>Outstanding amount (where applicable)</li>
+<li>Major expenses</li>
+<li>Operational issues</li>
+<li>Business notes</li>
+<li>Manager observations</li>
+</ul>
+<p>This is deliberately a five-minute daily summary, not a transaction-level POS log. <strong>Design note for the developer:</strong> keep revenue/expenses as fast numeric entry (under 30 seconds), and treat notes/observations as optional so the daily habit doesn't die from friction — a manager who finds this annoying will simply stop submitting.</p>
+<h3>5.3 Manager Reporting Calendar</h3>
+<p>Green = report submitted, Red = report missed, Yellow = partially completed. Manager can view their own history; owner can see whether managers are submitting consistently. This is the product's built-in accountability mechanism — it answers &quot;is my manager actually consistent?&quot; without the owner having to ask.</p>
+<h3>5.4 Manager Account Management</h3>
+<p>Owner creates manager profile, assigns to a business, sets password, can change/reset password, activate/deactivate, and reassign. A manager only ever accesses their assigned business/reporting permissions — never the owner's strategic portfolio dashboard.</p>
+<h3>5.5 Owner Dashboard (&quot;Master Control Room&quot;)</h3>
+<p>Should immediately answer: <em>What is happening across my businesses?</em></p>
+<ul>
+<li>Total invested capital</li>
+<li>Current revenue</li>
+<li>Current profit</li>
+<li>Business health</li>
+<li>Investment recovery progress</li>
+<li>Break-even progress</li>
+<li>Critical businesses</li>
+<li>Recent manager reports</li>
+<li>Munim Ji recommendations</li>
+<li>Important notifications</li>
+</ul>
+<h3>5.6 Dashboard Chart — Final Decision</h3>
+<p>Only <strong>one</strong> chart is displayed at a time. Type: <strong>vertical bar chart</strong>. A small filter/switch in the chart's corner changes the same container between three modes: Revenue &amp; Profit Trend, Profit by Business (₹L/month), Capital Allocation. Must be readable on mobile, show exact values on hover/tap, use consistent business colors, and update when underlying data changes. Do not build multiple chart types.</p>
+<h3>5.7 Business-Specific Colors</h3>
+<p>Each business gets a consistent color, retained across the dashboard and all charts. Keep colors accessible and avoid visual overload as the number of businesses grows.</p>
+<h3>5.8 Business Detail Page</h3>
+<p>Opens when a business card is clicked. Five tabs:</p>
+<ul>
+<li><strong>Overview:</strong> current health, investment, revenue, profit, recovery progress, break-even, Munim Ji verdict</li>
+<li><strong>Performance:</strong> revenue/profit/expense trends, health and historical comparison</li>
+<li><strong>Financial Journey:</strong> initial investment, additional investment, capital used, recovery, remaining recovery, break-even progress</li>
+<li><strong>Operations:</strong> daily reports, manager performance, missing reports, operational notes</li>
+<li><strong>History:</strong> reports, alerts, important events, decisions/actions</li>
+</ul>
+<h3>5.9 Munim Ji AI</h3>
+<p><strong>Ask Munim Ji:</strong> text conversation at launch (voice architecture planned, not required — see Section 3). Example questions it should handle: <em>Why did my profit fall? Which business is performing best? Where am I losing money? Which business needs attention? How much investment have I recovered? Am I ready to expand? What should I do this week? Compare all my businesses.</em></p>
+<p><strong>Verdict Engine</strong> returns, per business:</p>
+<ul>
+<li><strong>Status:</strong> Growing / Stable-Watch / Critical-At Risk</li>
+<li><strong>Reason:</strong> what is causing the status</li>
+<li><strong>Financial Impact:</strong> potential financial implication</li>
+<li><strong>Recommended Action:</strong> what the owner should do</li>
+<li><strong>Priority:</strong> High / Medium / Low</li>
+<li><strong>Confidence:</strong> High / Medium / Low, informed partly by data completeness/quality</li>
+</ul>
+<p>Remember the Learning Period requirement from Section 4 — this engine must have a defined &quot;not enough data yet&quot; state, not just a confident guess.</p>
+<h3>5.10 Take Action System</h3>
+<p>Every alert leads to a real next step:</p>
+<ul>
+<li>Normal → view detailed business information</li>
+<li>Warning → view problem/risk details</li>
+<li>Critical → view detailed business analysis + recommended action + consultation option</li>
+</ul>
+<h3>5.11 Critical Business Consultation</h3>
+<p>CTA: <strong>Book 1-on-1 Business Consultancy — ₹499</strong>. Channels: WhatsApp, Email, Request a Call Back. The request records owner, business, contact information, reason, date/time, and relevant critical-condition context in Supabase. Tone should be helpful, not fear-based.</p>
+<h3>5.12 Notifications</h3>
+<p>The notification bell opens a slide-down/modal popup — <strong>never</strong> a separate page. Types: Munim Ji critical alert, manager submitted report, manager missed report, business health warning, mandatory action, consultation recommendation. Notifications are clickable and lead to the relevant business/action. Build the architecture so future browser/mobile push is a straightforward addition, not a rebuild.</p>
+<h3>5.13 Definition Popups</h3>
+<p>A small (i) info icon next to business terms that may not be immediately understood (Revenue, Profit, Break-even, Investment Recovery, Capital Allocation, Operating Expense, Cash Flow, Burn Rate, ROI if it appears in imported data). Tap/click shows a small 1–2 line, non-technical popup without navigation. Must support English and Hindi.</p>
+<h3>5.14 Language Toggle — Final</h3>
+<p>English ↔ Hindi toggle. All relevant content changes: dashboard text, buttons, labels, notifications, definitions, AI interface, reports, navigation. <strong>Numbers never change</strong> (e.g. &quot;Monthly Profit: ₹2,50,000&quot; stays as digits in both languages). Persist the language preference across sessions.</p>
+<h3>5.15 Profile System</h3>
+<p>Owner's profile picture shows top-right on the homepage/header; clicking opens the profile section: photo, full name, email, phone, account info, owner role, language preference, account settings, and photo upload/crop/adjust/preview/save/replace, with the saved image reflecting immediately in the header.</p>
+<h3>5.16 Navigation</h3>
+<p>Home always returns to the main dashboard while preserving login session, language, and relevant preferences.</p>
+<h3>5.17 PDF Reports</h3>
+<p>Owner can generate an All Businesses Summary Report or a Specific Business Report, using live data: business information, investment, performance, revenue, expenses, profit, recovery, break-even, trends, alerts, and Munim Ji insights/verdict. <strong>Every generated PDF must carry a non-removable watermark: &quot;Generated by Munim Ji – Confidential,&quot; baked into the document itself, not a removable UI overlay.</strong> Report language follows the user's selected language; numbers stay unchanged. Cloud-based PDF generation is fine initially; architecture should allow swapping in a self-hosted generator later.</p>
+<h3>5.18 Mobile Experience</h3>
+<p>Not a compressed desktop view — designed intentionally for mobile: bottom navigation (Home / Businesses / Munim Ji / Alerts / Profile), large readable KPIs, the single vertical bar chart, swipeable business cards, easy daily-report access, a floating Ask Munim Ji button, easy notification access, touch-friendly buttons, expandable detail views.</p>
+<h3>5.19 &quot;Every Card and Button Must Work&quot;</h3>
+<p>No decorative dead UI, anywhere:</p>
+<ul>
+<li>Business Card → Business Detail</li>
+<li>Profit Card → Profit analysis</li>
+<li>Critical Alert → Critical business details</li>
+<li>Take Action → relevant business action</li>
+<li>Ask Munim Ji → AI interface</li>
+<li>Profile → Profile</li>
+<li>Home → Dashboard</li>
+<li>Notification → Notification popup</li>
+<li>Download Report → Generate/download PDF</li>
+<li>Chart filter → change chart mode</li>
+<li>Manager actions → corresponding reporting/account workflow</li>
+</ul>
+<hr>
+<h2>6. Data Privacy Requirements (non-negotiable)</h2>
+<ul>
+<li><strong>Business Owner:</strong> full access to their own business data only.</li>
+<li><strong>Manager:</strong> access strictly limited to their assigned business and reporting functions — no access to the owner's strategic dashboard.</li>
+<li><strong>Munim Ji AI:</strong> access only to the data required for its analysis, scoped to the authorized owner.</li>
+<li><strong>Platform operator:</strong> must not have unrestricted access to individual customers' business data by default. Prefer aggregated/anonymized platform analytics; any support access to identifiable data must be controlled, authorized, and logged.</li>
+</ul>
+<p>This must be enforced at the <strong>database layer via Supabase Row Level Security (RLS)</strong> — not only in application code — so that tenant isolation holds regardless of what the frontend does.</p>
+<p><strong>Required checkpoint:</strong> Before any manager account with scoped access goes live (end of Phase 3, see Section 9), commission a paid review of the schema and RLS policies from an experienced Postgres/Supabase developer. Deliverable: a written report confirming two test businesses with two test managers cannot see each other's data under any tested query path, including direct API calls (not just the UI).</p>
+<hr>
+<h2>7. System Architecture</h2>
+<pre><code>          Manager reporting tool                      Owner dashboard
+          (daily health reports)                (recovery, break-even, alerts)
+                    │                                       ▲
+                    ▼                                       │
+          ┌─────────────────────────────────────────────────────────┐
+          │                        Supabase                         │
+          │         Postgres + Auth + RLS + Realtime                │
+          └─────────────────────────────────────────────────────────┘
+                    │                                       ▲
+                    ▼                                       │
+                        Munim Ji AI
+                 (Edge Function + LLM verdicts)
+                    │              │              │
+                    ▼              ▼              ▼
+             Razorpay ₹499   WhatsApp/Email    PDF reports
+             (consultation)  (booking/alerts)  (watermarked)
+</code></pre>
+<ul>
+<li><strong>Manager reporting tool</strong> and <strong>Owner dashboard</strong> are the two product-facing surfaces, both reading/writing through Supabase with RLS enforcing who can see what.</li>
+<li><strong>Supabase</strong> is the single source of truth: Postgres for data, Auth for both owner and manager identities (same system, different RLS-scoped permissions), Realtime so dashboards update without a manual refresh, Edge Functions for server-side logic.</li>
+<li><strong>Munim Ji AI</strong> is a Supabase Edge Function that reads <code>business_metrics</code>, calls an LLM with a structured prompt, and writes back to <code>ai_verdicts</code>. It also triggers the three external integrations when the owner takes action: payment, WhatsApp/email, and report generation.</li>
+</ul>
+<p><strong>Scalability notes:</strong></p>
+<ul>
+<li>Treat <code>business_metrics</code> as a scheduled/materialized computation refreshed periodically — do not compute it live on every dashboard load.</li>
+<li>Index <code>business_id</code> and <code>manager_id</code> on every table where they appear as foreign keys.</li>
+<li>Scope Supabase Realtime subscriptions to a specific <code>business_id</code>, not globally, so clients aren't listening to every business on the platform.</li>
+<li>Run a separate staging Supabase project for development/testing; production is only touched with tested changes.</li>
+</ul>
+<hr>
+<h2>8. Tech Stack</h2>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Tool</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App builder / frontend</td>
+<td><strong>Lovable</strong></td>
+<td>Wired directly to Supabase; used for all UI, dashboards, and forms</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td><strong>Supabase</strong></td>
+<td>Postgres, Auth, Row Level Security, Storage, Realtime, Edge Functions</td>
+</tr>
+<tr>
+<td>AI verdict engine</td>
+<td><strong>Claude or GPT-4 API</strong>, called from a Supabase Edge Function</td>
+<td>Structured-output prompting against <code>business_metrics</code> to produce the verdict object</td>
+</tr>
+<tr>
+<td>Charts</td>
+<td><strong>Recharts</strong> or <strong>Chart.js</strong></td>
+<td>Single chart, switchable modes only — no chart-library sprawl</td>
+</tr>
+<tr>
+<td>Payments</td>
+<td><strong>Razorpay</strong></td>
+<td>₹499 consultation flow, UPI support</td>
+</tr>
+<tr>
+<td>WhatsApp Business API</td>
+<td><strong>Interakt</strong> or <strong>Gupshup</strong></td>
+<td>Consultation WhatsApp CTA</td>
+</tr>
+<tr>
+<td>Transactional email</td>
+<td><strong>Resend</strong> or <strong>Postmark</strong></td>
+<td>Consultation/callback confirmations, report delivery</td>
+</tr>
+<tr>
+<td>PDF generation</td>
+<td>Cloud PDF API (e.g. PDFMonkey) initially; <strong>Puppeteer</strong> Edge Function later</td>
+<td>Start cloud-based per product spec; architecture should allow swapping in Puppeteer once volume justifies it</td>
+</tr>
+<tr>
+<td>Internationalization</td>
+<td><strong>react-i18next</strong></td>
+<td>English/Hindi; numbers never translate</td>
+</tr>
+<tr>
+<td>Push notifications (post-MVP)</td>
+<td><strong>OneSignal</strong></td>
+<td>For browser/mobile push once the in-app bell is live</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h2>9. Data Model (Supabase / Postgres — logical entities)</h2>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>profiles</code></td>
+<td>Owner/user profile and preferences</td>
+</tr>
+<tr>
+<td><code>businesses</code></td>
+<td>Business identity and core setup — includes a <code>business_start_type</code> field (<code>new</code> / <code>existing</code>)</td>
+</tr>
+<tr>
+<td><code>business_baseline_snapshots</code></td>
+<td>Existing-business &quot;Business Snapshot&quot; answers — one row per Existing business</td>
+</tr>
+<tr>
+<td><code>business_managers</code></td>
+<td>Manager accounts/profiles</td>
+</tr>
+<tr>
+<td><code>manager_assignments</code></td>
+<td>Business–manager relationships/permissions</td>
+</tr>
+<tr>
+<td><code>business_investments</code></td>
+<td>Investment and recovery information</td>
+</tr>
+<tr>
+<td><code>business_settings</code></td>
+<td>Reporting and business configuration</td>
+</tr>
+<tr>
+<td><code>daily_reports</code></td>
+<td>Manager-submitted daily health reports</td>
+</tr>
+<tr>
+<td><code>reporting_calendar</code></td>
+<td>Reporting completion/missed/partial state</td>
+</tr>
+<tr>
+<td><code>business_metrics</code></td>
+<td>Calculated/derived business metrics</td>
+</tr>
+<tr>
+<td><code>business_history</code></td>
+<td>Business events and historical records</td>
+</tr>
+<tr>
+<td><code>alerts</code></td>
+<td>Business health/risk alerts</td>
+</tr>
+<tr>
+<td><code>notifications</code></td>
+<td>Owner notifications and read/unread state</td>
+</tr>
+<tr>
+<td><code>ai_verdicts</code></td>
+<td>Munim Ji structured insights/verdicts</td>
+</tr>
+<tr>
+<td><code>ai_conversations</code></td>
+<td>AI text/voice conversation records</td>
+</tr>
+<tr>
+<td><code>consultancy_requests</code></td>
+<td>₹499 consultation requests</td>
+</tr>
+<tr>
+<td><code>generated_reports</code></td>
+<td>Generated PDF/report metadata</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Relationship flow:</strong></p>
+<pre><code>Owner → Businesses → Managers → Daily Reports → Supabase Data →
+Munim Ji Engine → Insights / Alerts / Actions → Owner → Business Growth
+</code></pre>
+<p><strong>Real-time requirement:</strong> report submitted → owner dashboard updates immediately; business edited → cards/metrics update; manager misses report → notification state updates; critical condition → alert appears; new Munim Ji verdict → dashboard information updates. No manual page refresh required anywhere this applies.</p>
+<hr>
+<h2>10. Development Phases &amp; Timeline</h2>
+<p>Roughly <strong>16 weeks (4 months)</strong> at a solo-founder pace, in six phases. Only one phase requires paid outside help before launch.</p>
+<p><strong>Phase 1 — Foundation: Supabase + Auth</strong> <em>(Weeks 1–2)</em>
+Set up the Supabase project (Postgres, Auth, RLS, Storage, Realtime, Edge Functions). Scaffold the app in Lovable. Build <code>profiles</code>, owner signup/login, and the English/Hindi toggle skeleton early since it touches every screen. Solo build, no outside help needed.</p>
+<p><strong>Phase 2 — Business &amp; Investment Layer</strong> <em>(Weeks 3–4)</em>
+Build <code>businesses</code> (including <code>business_start_type</code>), <code>business_investments</code>, <code>business_baseline_snapshots</code>, and the New-vs-Existing onboarding fork. Solo build.</p>
+<p><strong>Phase 3 — Manager Side: Daily Reporting</strong> <em>(Weeks 5–7)</em>
+Build <code>business_managers</code>, <code>manager_assignments</code>, <code>daily_reports</code>. Manager login scoped via RLS. Build the report submission form and the reporting calendar.
+<strong>→ At the end of this phase, before any real manager account goes live: commission the one-time RLS security audit</strong> (~₹8,000–15,000, a freelance Supabase/Postgres developer, roughly a day of their time — see Section 6).</p>
+<p><strong>Phase 4 — Owner Dashboard &amp; Business Detail</strong> <em>(Weeks 8–10)</em>
+Build <code>business_metrics</code>, the single switchable bar chart, consistent per-business colors, the five-tab Business Detail page, and scoped Realtime. By now there's a demoable product even without AI — a good moment to get real reactions from 2–3 trusted business owners, ideally including at least one running an existing (not brand-new) business.</p>
+<p><strong>Phase 5 — Munim Ji AI Layer</strong> <em>(Weeks 11–13)</em>
+Build <code>ai_verdicts</code> and the Edge Function (status, reason, financial impact, recommendation, priority, confidence), including the required Learning Period state. Build Ask Munim Ji as text-first. Wire <code>notifications</code> and the alert bell.
+<em>Do not start this phase until Phase 3's daily reports are actually flowing — verdicts need real metrics to test against.</em></p>
+<p><strong>Phase 6 — Monetization, Reports &amp; Polish</strong> <em>(Weeks 14–16)</em>
+Build <code>consultancy_requests</code> + Razorpay, WhatsApp/email/callback options, <code>generated_reports</code> with the watermark baked in, the Hindi translation pass, definition popups, mobile bottom nav, and a full QA pass confirming every card and button leads somewhere real.</p>
+<hr>
+<h2>11. Acceptance Criteria</h2>
+<ul>
+<li>A manager logged into Business A cannot retrieve any data belonging to Business B, verified by direct API testing, not just UI testing.</li>
+<li>Every dashboard card, alert, and button navigates to a working, non-decorative destination.</li>
+<li>The language toggle changes all UI text and AI/report content, but never numeric values.</li>
+<li>PDF reports render with the watermark embedded in the file itself, not as a UI-only overlay.</li>
+<li>Dashboard and Realtime updates function without requiring a manual page refresh.</li>
+<li>An Existing business that marks investment as already-recovered never shows a recovery-progress metric on its dashboard.</li>
+<li>A business with fewer than ~2–4 weeks of daily reports shows the AI's calibration/learning message, never a confident Growing/Stable-Watch/Critical verdict.</li>
+</ul>
+<hr>
+<h2>12. Long-Term Vision (context, not MVP scope)</h2>
+<p>Munim Ji's phased ambition, for context on why certain architectural choices (Supabase, structured data capture, AI-first analysis) were made even though the MVP is narrow:</p>
+<ul>
+<li><strong>Phase 1:</strong> Business Health Reporting (this build)</li>
+<li><strong>Phase 2:</strong> Business Intelligence</li>
+<li><strong>Phase 3:</strong> AI Business Manager</li>
+<li><strong>Phase 4:</strong> AI Business Strategist</li>
+<li><strong>Phase 5:</strong> Business Operating System</li>
+</ul>
+<p><strong>Desired owner feeling, at every stage:</strong> <em>I know what is happening. I know why it is happening. I know what I should do next.</em></p>
+
+</body></html>

@@ -1,0 +1,61 @@
+{
+  "app": {
+    "name": "Munim Ji",
+    "tagline": "Your Personal Business Manager"
+  },
+  "nav": {
+    "home": "Home",
+    "businesses": "Businesses",
+    "munim_ai": "Munim Ji AI",
+    "alerts": "Alerts",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "title": "Master Control Room",
+    "subtitle": "Real-time overview of all your businesses",
+    "total_invested": "Total Invested Capital",
+    "current_revenue": "Current Revenue",
+    "current_profit": "Current Profit Estimate",
+    "critical_businesses": "Critical Businesses",
+    "learning_period": "Calibrating your business rhythm",
+    "learning_period_desc": "Munim Ji is analyzing daily report data to identify patterns.",
+    "no_businesses": "No businesses added yet. Start by creating your first business."
+  },
+  "chart": {
+    "mode_revenue_profit": "Revenue & Profit Trend",
+    "mode_profit_by_business": "Profit by Business",
+    "mode_capital": "Capital Allocation",
+    "revenue": "Revenue",
+    "profit": "Profit",
+    "expenses": "Expenses"
+  },
+  "business": {
+    "add_business": "Add Business",
+    "create_new": "Create Business",
+    "new_business": "New Business",
+    "existing_business": "Existing Business",
+    "new_business_desc": "Set up fresh from Day 1 with full investment tracking",
+    "existing_business_desc": "Already running for months/years — 5-minute snapshot setup",
+    "name": "Business Name",
+    "category": "Category",
+    "industry": "Industry",
+    "location": "Location",
+    "start_date": "Start Date",
+    "outlets": "Number of Outlets",
+    "objective": "Business Objective"
+  },
+  "definitions": {
+    "revenue": "Total income generated from sales before deducting any expenses.",
+    "profit": "Estimated difference between your revenue and operating expenses.",
+    "break_even": "The point where total revenues equal total costs — no profit, no loss.",
+    "recovery": "Percentage of initial invested capital recovered from net profits."
+  },
+  "auth": {
+    "sign_in": "Sign In",
+    "sign_up": "Create Account",
+    "email": "Email Address",
+    "password": "Password",
+    "full_name": "Full Name",
+    "log_out": "Log Out"
+  }
+}
