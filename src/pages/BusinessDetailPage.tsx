@@ -13,28 +13,123 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
-  Download
+  Download,
+  Plus,
+  X
 } from 'lucide-react';
+import { useBusiness } from '../context/BusinessContext';
 
 type Tab = 'overview' | 'performance' | 'financial' | 'operations' | 'history';
 
 export const BusinessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { businesses, getBusiness, dailyReports, addDailyReport } = useBusiness();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const business = {
-    id: id || '1',
-    name: id === '2' ? 'Shree sai fashion' : 'Priya Foods',
-    category: id === '2' ? 'Other' : 'Food Beverage',
-    status: 'Stable',
-    invested: id === '2' ? '₹1,00,000.0L' : '₹5,00,000.0L',
-    monthlyRevenue: id === '2' ? '₹2,40,000' : '₹4,85,000',
-    monthlyProfit: id === '2' ? '₹62,000' : '₹1,42,000',
-    recoveryPct: 42,
-    manager: 'Rajesh Kumar',
-    reportsCount: 14,
-    streak: '14 days',
+  // Daily report modal state
+  const [showLogModal, setShowLogModal] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    revenue: '',
+    expenses: '',
+    cashCollection: '',
+    bankCollection: '',
+    notes: '',
+  });
+
+  const business = (id ? getBusiness(id) : undefined) || businesses[0];
+
+  const formatCurrency = (amt: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amt);
+  };
+
+  const formatLakhs = (amt: number) => {
+    if (amt >= 10000000) {
+      return `₹${(amt / 10000000).toFixed(2)} Cr`;
+    }
+    return `₹${(amt / 100000).toFixed(1)}L`;
+  };
+
+  if (!business) {
+    return (
+      <div className="munim-card p-12 text-center space-y-4">
+        <Building2 className="w-12 h-12 text-slate-300 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-800">Business Not Found</h2>
+        <p className="text-xs text-slate-500">
+          The requested business is not in your current portfolio.
+        </p>
+        <button
+          onClick={() => navigate('/businesses')}
+          className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold"
+        >
+          View All Businesses
+        </button>
+      </div>
+    );
+  }
+
+  // Filter daily reports for this business
+  const bizReports = dailyReports.filter((r) => r.businessId === business.id);
+
+  // Calculate dynamic monthly revenue and profit
+  let monthlyRevenue = 0;
+  let monthlyProfit = 0;
+  let totalCumulativeProfit = 0;
+
+  if (business.pastHistory && business.pastHistory.length > 0) {
+    const last = business.pastHistory[business.pastHistory.length - 1];
+    monthlyRevenue = parseFloat(last.revenue) || 0;
+    monthlyProfit = parseFloat(last.profit) || 0;
+    business.pastHistory.forEach((h) => {
+      totalCumulativeProfit += parseFloat(h.profit) || 0;
+    });
+  } else {
+    monthlyRevenue = business.monthlyFixedCosts * 1.3;
+    monthlyProfit = business.monthlyFixedCosts * 0.3;
+    totalCumulativeProfit = monthlyProfit * 3;
+  }
+
+  // Add profits from daily reports
+  bizReports.forEach((r) => {
+    totalCumulativeProfit += r.revenue - r.expenses;
+  });
+
+  const recoveryPct = business.initialCapital > 0
+    ? Math.min(100, Math.max(0, Math.round((totalCumulativeProfit / business.initialCapital) * 100)))
+    : 100;
+
+  const handleSaveReport = (e: React.FormEvent) => {
+    e.preventDefault();
+    const rev = parseFloat(reportForm.revenue) || 0;
+    const exp = parseFloat(reportForm.expenses) || 0;
+    const cash = parseFloat(reportForm.cashCollection) || rev * 0.6;
+    const bank = parseFloat(reportForm.bankCollection) || rev * 0.4;
+
+    addDailyReport({
+      businessId: business.id,
+      date: reportForm.date,
+      revenue: rev,
+      expenses: exp,
+      cashCollection: cash,
+      bankCollection: bank,
+      outstanding: Math.max(0, rev - (cash + bank)),
+      notes: reportForm.notes,
+    });
+
+    setShowLogModal(false);
+    setReportForm({
+      date: new Date().toISOString().split('T')[0],
+      revenue: '',
+      expenses: '',
+      cashCollection: '',
+      bankCollection: '',
+      notes: '',
+    });
   };
 
   return (
@@ -42,20 +137,31 @@ export const BusinessDetailPage: React.FC = () => {
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/businesses')}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Portfolio</span>
+          <span>Back to Businesses</span>
         </button>
 
-        <button
-          onClick={() => alert('PDF Report with embedded watermark "Generated by Munim Ji – Confidential" downloaded!')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-xs"
-        >
-          <Download className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Download Report (Watermarked PDF)</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowLogModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Log Daily Report</span>
+          </button>
+
+          <button
+            onClick={() => alert(`PDF Report generated for "${business.name}" with watermark "Generated by Munim Ji – Confidential"`)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-xs transition-colors"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">Download Report (Watermarked PDF)</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
+        </div>
       </div>
 
       {/* Business Title Banner */}
@@ -71,21 +177,23 @@ export const BusinessDetailPage: React.FC = () => {
               </h1>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                {business.status}
+                Stable
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">{business.category}</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {business.industry || 'General Business'} • {business.location || 'India'}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-4 text-xs sm:border-l sm:border-slate-100 sm:pl-6">
           <div>
             <span className="text-slate-400 block text-[11px]">Assigned Manager</span>
-            <span className="font-bold text-slate-800">{business.manager}</span>
+            <span className="font-bold text-slate-800">{business.managerName || 'Owner Managed'}</span>
           </div>
           <div>
-            <span className="text-slate-400 block text-[11px]">Reporting Streak</span>
-            <span className="font-bold text-emerald-600">{business.streak}</span>
+            <span className="text-slate-400 block text-[11px]">Reporting Frequency</span>
+            <span className="font-bold text-emerald-600">{business.reportingFrequency || 'Daily'}</span>
           </div>
         </div>
       </div>
@@ -97,7 +205,7 @@ export const BusinessDetailPage: React.FC = () => {
             { id: 'overview', label: 'Overview' },
             { id: 'performance', label: 'Performance' },
             { id: 'financial', label: 'Financial Journey' },
-            { id: 'operations', label: 'Operations & Reports' },
+            { id: 'operations', label: `Operations & Reports (${bizReports.length})` },
             { id: 'history', label: 'History & Decisions' },
           ].map((tab) => (
             <button
@@ -122,7 +230,7 @@ export const BusinessDetailPage: React.FC = () => {
             <div className="munim-card p-5">
               <span className="text-xs text-slate-400 font-medium block">Monthly Revenue</span>
               <span className="text-xl font-extrabold text-slate-900 mt-1 block">
-                {business.monthlyRevenue}
+                {formatCurrency(monthlyRevenue)}
               </span>
               <span className="text-xs text-emerald-600 font-semibold mt-1 block">
                 Stable operating margins
@@ -131,7 +239,7 @@ export const BusinessDetailPage: React.FC = () => {
             <div className="munim-card p-5">
               <span className="text-xs text-slate-400 font-medium block">Monthly Profit</span>
               <span className="text-xl font-extrabold text-emerald-600 mt-1 block">
-                {business.monthlyProfit}
+                {formatCurrency(monthlyProfit)}
               </span>
               <span className="text-xs text-slate-400 mt-1 block">
                 Net after operational expenses
@@ -140,12 +248,12 @@ export const BusinessDetailPage: React.FC = () => {
             <div className="munim-card p-5">
               <span className="text-xs text-slate-400 font-medium block">Capital Recovery</span>
               <span className="text-xl font-extrabold text-slate-900 mt-1 block">
-                {business.recoveryPct}%
+                {recoveryPct}%
               </span>
               <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2">
                 <div
-                  className="h-full bg-emerald-600 rounded-full"
-                  style={{ width: `${business.recoveryPct}%` }}
+                  className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                  style={{ width: `${recoveryPct}%` }}
                 />
               </div>
             </div>
@@ -160,7 +268,7 @@ export const BusinessDetailPage: React.FC = () => {
               </h3>
             </div>
             <p className="text-xs text-slate-700 leading-relaxed">
-              <strong>Status: Stable (Calibrated)</strong> — {business.name} is demonstrating disciplined day-to-day operations with 100% daily report completion. Cash collections are balanced with bank settlements. Next recommended action: Review raw material bulk purchase contracts to expand profit margin by an estimated 3-5%.
+              <strong>Status: Stable (Calibrated)</strong> — {business.name} is demonstrating disciplined day-to-day operations with verified metrics. Cash collections are balanced with bank settlements. Next recommended action: Review raw material bulk purchase contracts to expand profit margin by an estimated 3-5%.
             </p>
           </div>
         </div>
@@ -171,16 +279,20 @@ export const BusinessDetailPage: React.FC = () => {
         <div className="munim-card p-6 space-y-4">
           <h3 className="font-extrabold text-base text-slate-900">Performance Comparison</h3>
           <p className="text-xs text-slate-500">
-            Comparing daily reporting averages across the last 30 operational days.
+            Comparing daily reporting averages across the operational cycle.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-xs text-slate-400 block">Average Daily Sales</span>
-              <span className="text-lg font-bold text-slate-900">₹16,200 / day</span>
+              <span className="text-lg font-bold text-slate-900">
+                {formatCurrency(Math.round(monthlyRevenue / 30))} / day
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-xs text-slate-400 block">Average Daily Expenses</span>
-              <span className="text-lg font-bold text-slate-900">₹11,400 / day</span>
+              <span className="text-lg font-bold text-slate-900">
+                {formatCurrency(Math.round((monthlyRevenue - monthlyProfit) / 30))} / day
+              </span>
             </div>
           </div>
         </div>
@@ -193,15 +305,17 @@ export const BusinessDetailPage: React.FC = () => {
           <div className="space-y-3 text-xs text-slate-600">
             <div className="flex justify-between py-2 border-b border-slate-100">
               <span>Total Capital Committed</span>
-              <span className="font-bold text-slate-900">{business.invested}</span>
+              <span className="font-bold text-slate-900">{formatCurrency(business.initialCapital)}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100">
               <span>Cumulative Profit Allocated to Recovery</span>
-              <span className="font-bold text-emerald-600">₹2,10,000</span>
+              <span className="font-bold text-emerald-600">{formatCurrency(totalCumulativeProfit)}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100">
               <span>Estimated Months to Full Capital Recovery</span>
-              <span className="font-bold text-slate-900">14 Months</span>
+              <span className="font-bold text-slate-900">
+                {business.expectedRecoveryMonths || 18} Months
+              </span>
             </div>
           </div>
         </div>
@@ -211,43 +325,187 @@ export const BusinessDetailPage: React.FC = () => {
       {activeTab === 'operations' && (
         <div className="munim-card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-base text-slate-900">Recent Daily Health Reports</h3>
-            <span className="text-xs text-slate-400">Manager: {business.manager}</span>
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900">Daily Health Reports</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Manager: {business.managerName || 'Owner Managed'}</p>
+            </div>
+            <button
+              onClick={() => setShowLogModal(true)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold inline-flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Log Today</span>
+            </button>
           </div>
 
-          <div className="space-y-2.5">
-            {[
-              { date: 'Today (11 Oct)', rev: '₹18,500', exp: '₹12,000', coll: '₹18,500', state: 'submitted' },
-              { date: 'Yesterday (10 Oct)', rev: '₹17,200', exp: '₹11,500', coll: '₹17,000', state: 'submitted' },
-              { date: '09 Oct', rev: '₹19,000', exp: '₹13,200', coll: '₹19,000', state: 'submitted' },
-            ].map((r, i) => (
-              <div key={i} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-slate-900 block">{r.date}</span>
-                  <span className="text-slate-400">Revenue: {r.rev} | Expenses: {r.exp}</span>
+          {bizReports.length === 0 ? (
+            <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl space-y-2">
+              <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-semibold text-slate-700">No daily reports logged yet</p>
+              <p className="text-[11px] text-slate-400">
+                Click "+ Log Today" to enter end-of-day sales, expenses, and cash collections.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {bizReports.map((r) => (
+                <div key={r.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 block">{r.date}</span>
+                    <span className="text-slate-400">
+                      Revenue: {formatCurrency(r.revenue)} | Expenses: {formatCurrency(r.expenses)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px] inline-block mb-1">
+                      Submitted
+                    </span>
+                    <span className="block text-[11px] font-bold text-slate-800">
+                      Profit: {formatCurrency(r.revenue - r.expenses)}
+                    </span>
+                  </div>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
-                  Submitted (On Time)
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Tab 5: History & Decisions */}
       {activeTab === 'history' && (
         <div className="munim-card p-6 space-y-4">
-          <h3 className="font-extrabold text-base text-slate-900">Timeline & Decisions Log</h3>
+          <h3 className="font-extrabold text-base text-slate-900">Timeline & History Baseline</h3>
           <div className="space-y-3 text-xs">
+            {business.pastHistory && business.pastHistory.length > 0 && (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Historical Months Loaded
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                  {business.pastHistory.map((h, i) => (
+                    <div key={i} className="p-2.5 bg-white rounded-lg border border-slate-100 text-[11px]">
+                      <span className="font-bold text-slate-900 block">{h.month}</span>
+                      <span className="text-slate-500">Rev: {formatCurrency(parseFloat(h.revenue) || 0)}</span>
+                      <span className="text-emerald-600 block font-semibold">Profit: {formatCurrency(parseFloat(h.profit) || 0)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[11px] text-slate-400">11 Oct 2026</span>
-              <p className="font-bold text-slate-800 mt-0.5">Manager Rajesh Kumar logged daily health report.</p>
+              <span className="text-[11px] text-slate-400">
+                {new Date(business.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+              <p className="font-bold text-slate-800 mt-0.5">
+                Business onboarded with initial committed capital of {formatCurrency(business.initialCapital)}.
+              </p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[11px] text-slate-400">01 Oct 2026</span>
-              <p className="font-bold text-slate-800 mt-0.5">Business baseline established with Day 1 investment profile.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Log Daily Report Modal */}
+      {showLogModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-base text-slate-900">Log Daily Report</h3>
+              <button
+                onClick={() => setShowLogModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+
+            <form onSubmit={handleSaveReport} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Date</label>
+                <input
+                  type="date"
+                  required
+                  value={reportForm.date}
+                  onChange={(e) => setReportForm({ ...reportForm, date: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Total Sales (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 18500"
+                    value={reportForm.revenue}
+                    onChange={(e) => setReportForm({ ...reportForm, revenue: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Total Expenses (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 11200"
+                    value={reportForm.expenses}
+                    onChange={(e) => setReportForm({ ...reportForm, expenses: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Cash In Hand (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 10000"
+                    value={reportForm.cashCollection}
+                    onChange={(e) => setReportForm({ ...reportForm, cashCollection: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Bank / UPI (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 8500"
+                    value={reportForm.bankCollection}
+                    onChange={(e) => setReportForm({ ...reportForm, bankCollection: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Manager Notes (Optional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Notes on operations, footfall, inventory..."
+                  value={reportForm.notes}
+                  onChange={(e) => setReportForm({ ...reportForm, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-emerald-600 outline-none resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowLogModal(false)}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs transition-colors"
+                >
+                  Save Daily Report
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

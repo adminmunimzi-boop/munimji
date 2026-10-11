@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/i18n';
+import { useAuth } from '@/context/AuthContext';
+import { useBusiness } from '@/context/BusinessContext';
 import { AddBusinessModal } from '@/components/business/AddBusinessModal';
 import {
   Plus,
@@ -14,13 +16,18 @@ import {
   Building2,
   Sparkles,
   AlertTriangle,
-  User
+  User,
+  LogOut
 } from 'lucide-react';
 
 export const AppShell: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { addBusiness } = useBusiness();
+
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [addBusinessModalOpen, setAddBusinessModalOpen] = useState(false);
   const currentLanguage = i18n.language as 'en' | 'hi';
 
@@ -29,13 +36,14 @@ export const AppShell: React.FC = () => {
     changeLanguage(nextLang);
   };
 
-  const handleBusinessCreated = (business: any) => {
-    alert(`Success: "${business.name}" created with assigned manager "${business.managerName}"!`);
+  const handleBusinessCreated = (businessData: any) => {
+    addBusiness(businessData);
+    setAddBusinessModalOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans">
-      {/* Top Header matching screenshot */}
+      {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200/90 px-4 py-3 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
@@ -113,10 +121,10 @@ export const AppShell: React.FC = () => {
                         <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs font-bold text-amber-900">
-                            Priya Foods: Daily Report Pending
+                            System Ready
                           </p>
                           <p className="text-[11px] text-amber-700 mt-0.5">
-                            Reporting cutoff is 10:00 AM IST.
+                            Connect your businesses to receive live operational alerts.
                           </p>
                         </div>
                       </div>
@@ -126,18 +134,50 @@ export const AppShell: React.FC = () => {
               )}
             </div>
 
-            {/* User Profile Avatar Pill */}
-            <div
-              onClick={() => navigate('/profile')}
-              className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                A
+            {/* User Profile Avatar Pill & Dropdown */}
+            <div className="relative">
+              <div
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
+                  {(user?.name || 'A')[0].toUpperCase()}
+                </div>
+                <span className="text-xs font-semibold text-slate-700 hidden sm:block">
+                  {user?.name || 'Amit'}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </div>
-              <span className="text-xs font-semibold text-slate-700 hidden sm:block">
-                Amit
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-in fade-in">
+                  <div className="px-3.5 py-2 border-b border-slate-100 text-xs">
+                    <p className="font-bold text-slate-900">{user?.name || 'Amit'}</p>
+                    <p className="text-slate-400 text-[11px] truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      navigate('/profile');
+                    }}
+                    className="w-full px-3.5 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>Profile Settings</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      logout();
+                      navigate('/login');
+                    }}
+                    className="w-full px-3.5 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -148,7 +188,7 @@ export const AppShell: React.FC = () => {
         <Outlet context={{ openAddBusinessModal: () => setAddBusinessModalOpen(true) }} />
       </main>
 
-      {/* Footer matching screenshot */}
+      {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white py-6 px-4 text-center">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">

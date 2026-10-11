@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useBusiness } from '../context/BusinessContext';
 
 export const NewBusinessPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { addBusiness } = useBusiness();
 
   // The Fork: 'new' | 'existing'
   const [startType, setStartType] = useState<'new' | 'existing'>('new');
@@ -33,6 +35,33 @@ export const NewBusinessPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) return;
+
+    const capital = parseFloat(initialInvestment) || 500000;
+    const fixedExpenses = parseFloat(monthlyFixedExpenses) || (capital * 0.1);
+
+    addBusiness({
+      name: name.trim(),
+      type: startType,
+      operatingAge: startType === 'new' ? '0' : approximateAge,
+      industry: industry || 'Retail',
+      location: location || 'Delhi',
+      startDate: new Date().toISOString().split('T')[0],
+      initialCapital: capital,
+      monthlyFixedCosts: fixedExpenses,
+      expectedRecoveryMonths: parseInt(expectedRecoveryMonths, 10) || 24,
+      breakEvenMonths: parseInt(breakEvenMonths, 10) || 12,
+      riskAppetite: 'Medium',
+      investmentRecovered: investmentAlreadyRecovered,
+      pastHistory: startType === 'existing' ? [
+        { month: 'Month 1', revenue: String(parseFloat(monthlyRevenueMin) || 150000), profit: String((parseFloat(monthlyRevenueMin) || 150000) * 0.2) },
+        { month: 'Month 2', revenue: String(parseFloat(monthlyRevenueMax) || 200000), profit: String((parseFloat(monthlyRevenueMax) || 200000) * 0.25) }
+      ] : [],
+      managerName: 'Owner Managed',
+      reportingFrequency: 'Daily',
+      enableAlerts: true,
+    });
+
     navigate('/businesses');
   };
 
