@@ -27,16 +27,46 @@ export interface BusinessItem {
   createdAt: string;
 }
 
+export interface ManagerItem {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  businessId: string;
+  businessName: string;
+  cutoffTime: string; // e.g. "22:00"
+  status: 'Active' | 'Pending' | 'On Leave' | 'Inactive';
+  streakDays: number;
+  completionRate: number; // e.g. 96
+  createdAt: string;
+}
+
 export interface DailyReportItem {
   id: string;
   businessId: string;
+  businessName?: string;
+  managerId?: string;
+  managerName?: string;
   date: string;
   revenue: number;
   expenses: number;
   cashCollection: number;
   bankCollection: number;
   outstanding: number;
+  // Detailed breakdown
+  cashSales?: number;
+  digitalSales?: number;
+  creditSales?: number;
+  rawMaterialExpenses?: number;
+  laborExpenses?: number;
+  utilitiesExpenses?: number;
+  otherExpenses?: number;
+  closingCashInDrawer?: number;
+  discrepancy?: number;
+  billCount?: number;
   notes?: string;
+  status?: 'Verified' | 'Pending' | 'Flagged';
+  submittedAt?: string;
 }
 
 interface PortfolioStats {
@@ -54,8 +84,13 @@ interface BusinessContextType {
   addBusiness: (business: Omit<BusinessItem, 'id' | 'createdAt'>) => BusinessItem;
   deleteBusiness: (id: string) => void;
   getBusiness: (id: string) => BusinessItem | undefined;
+  managers: ManagerItem[];
+  addManager: (manager: Omit<ManagerItem, 'id' | 'createdAt'>) => ManagerItem;
+  updateManager: (id: string, updates: Partial<ManagerItem>) => void;
+  deleteManager: (id: string) => void;
   dailyReports: DailyReportItem[];
   addDailyReport: (report: Omit<DailyReportItem, 'id'>) => void;
+  verifyDailyReport: (id: string, status: 'Verified' | 'Flagged') => void;
   stats: PortfolioStats;
   seedSampleData: () => void;
   clearAllData: () => void;
@@ -77,6 +112,18 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return []; // Clean empty state by default!
   });
 
+  const [managers, setManagers] = useState<ManagerItem[]>(() => {
+    const saved = localStorage.getItem('munim_managers');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const [dailyReports, setDailyReports] = useState<DailyReportItem[]>(() => {
     const saved = localStorage.getItem('munim_daily_reports');
     if (saved) {
@@ -89,10 +136,14 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return [];
   });
 
-  // Save to LocalStorage whenever businesses change
+  // Save to LocalStorage whenever state changes
   useEffect(() => {
     localStorage.setItem('munim_businesses', JSON.stringify(businesses));
   }, [businesses]);
+
+  useEffect(() => {
+    localStorage.setItem('munim_managers', JSON.stringify(managers));
+  }, [managers]);
 
   useEffect(() => {
     localStorage.setItem('munim_daily_reports', JSON.stringify(dailyReports));
@@ -105,28 +156,95 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       createdAt: new Date().toISOString(),
     };
     setBusinesses((prev) => [newBiz, ...prev]);
+
+    // If a manager name is provided during business onboarding, auto-register them
+    if (businessData.managerName && businessData.managerName.trim() && businessData.managerName !== 'Owner Managed') {
+      const newMgr: ManagerItem = {
+        id: 'mgr_' + Date.now(),
+        name: businessData.managerName.trim(),
+        phone: '+91 98765 43210',
+        businessId: newBiz.id,
+        businessName: newBiz.name,
+        cutoffTime: '22:00',
+        status: 'Active',
+        streakDays: 1,
+        completionRate: 100,
+        createdAt: new Date().toISOString(),
+      };
+      setManagers((prev) => [newMgr, ...prev]);
+    }
+
     return newBiz;
   };
 
   const deleteBusiness = (id: string) => {
     setBusinesses((prev) => prev.filter((b) => b.id !== id));
+    setManagers((prev) => prev.filter((m) => m.businessId !== id));
+    setDailyReports((prev) => prev.filter((r) => r.businessId !== id));
   };
 
   const getBusiness = (id: string) => {
     return businesses.find((b) => b.id === id);
   };
 
+  const addManager = (managerData: Omit<ManagerItem, 'id' | 'createdAt'>) => {
+    const newMgr: ManagerItem = {
+      ...managerData,
+      id: 'mgr_' + Date.now(),
+      createdAt: new Date().toISOString(),
+    };
+    setManagers((prev) => [newMgr, ...prev]);
+
+    // Update business's assigned manager name
+    setBusinesses((prev) =>
+      prev.map((b) =>
+        b.id === managerData.businessId ? { ...b, managerName: managerData.name } : b
+      )
+    );
+
+    return newMgr;
+  };
+
+  const updateManager = (id: string, updates: Partial<ManagerItem>) => {
+    setManagers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...updates } : m))
+    );
+  };
+
+  const deleteManager = (id: string) => {
+    setManagers((prev) => prev.filter((m) => m.id !== id));
+  };
+
   const addDailyReport = (reportData: Omit<DailyReportItem, 'id'>) => {
     const newReport: DailyReportItem = {
       ...reportData,
       id: 'rep_' + Date.now(),
+      status: reportData.status || 'Verified',
+      submittedAt: reportData.submittedAt || new Date().toISOString(),
     };
     setDailyReports((prev) => [newReport, ...prev]);
+
+    // Update submitting manager's streak if found
+    if (reportData.managerId) {
+      setManagers((prev) =>
+        prev.map((m) =>
+          m.id === reportData.managerId
+            ? { ...m, streakDays: m.streakDays + 1, completionRate: Math.min(100, m.completionRate + 1) }
+            : m
+        )
+      );
+    }
+  };
+
+  const verifyDailyReport = (id: string, status: 'Verified' | 'Flagged') => {
+    setDailyReports((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status } : r))
+    );
   };
 
   // Seed standard real-world sample for testing if user desires
   const seedSampleData = () => {
-    const sample: BusinessItem[] = [
+    const sampleBiz: BusinessItem[] = [
       {
         id: 'biz_01',
         name: 'Priya Foods',
@@ -154,14 +272,127 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         enableAlerts: true,
         createdAt: new Date().toISOString(),
       },
+      {
+        id: 'biz_02',
+        name: 'Shree Sai Fashion',
+        type: 'existing',
+        operatingAge: '2+ years',
+        industry: 'Retail & Garments',
+        location: 'Chandni Chowk, Delhi',
+        startDate: '2023-04-01',
+        initialCapital: 1000000,
+        monthlyFixedCosts: 180000,
+        expectedRecoveryMonths: 18,
+        breakEvenMonths: 6,
+        riskAppetite: 'Low',
+        investmentRecovered: false,
+        pastHistory: [
+          { month: 'Apr', revenue: '220000', profit: '50000' },
+          { month: 'May', revenue: '250000', profit: '62000' },
+          { month: 'Jun', revenue: '240000', profit: '58000' },
+        ],
+        managerName: 'Amit Verma',
+        reportingFrequency: 'Daily',
+        enableAlerts: true,
+        createdAt: new Date().toISOString(),
+      },
     ];
-    setBusinesses(sample);
+
+    const sampleManagers: ManagerItem[] = [
+      {
+        id: 'mgr_01',
+        name: 'Rajesh Kumar',
+        phone: '+91 98112 45678',
+        email: 'rajesh@priyafoods.in',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        cutoffTime: '22:00',
+        status: 'Active',
+        streakDays: 14,
+        completionRate: 98,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 'mgr_02',
+        name: 'Amit Verma',
+        phone: '+91 98765 89012',
+        email: 'amit@shreesai.in',
+        businessId: 'biz_02',
+        businessName: 'Shree Sai Fashion',
+        cutoffTime: '21:30',
+        status: 'Active',
+        streakDays: 8,
+        completionRate: 92,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const sampleReports: DailyReportItem[] = [
+      {
+        id: 'rep_01',
+        businessId: 'biz_01',
+        businessName: 'Priya Foods',
+        managerId: 'mgr_01',
+        managerName: 'Rajesh Kumar',
+        date: new Date().toISOString().split('T')[0],
+        revenue: 18500,
+        expenses: 11200,
+        cashCollection: 11000,
+        bankCollection: 7500,
+        cashSales: 11000,
+        digitalSales: 7500,
+        creditSales: 0,
+        rawMaterialExpenses: 8000,
+        laborExpenses: 2500,
+        utilitiesExpenses: 700,
+        otherExpenses: 0,
+        closingCashInDrawer: 4500,
+        discrepancy: 0,
+        billCount: 142,
+        outstanding: 0,
+        notes: 'Good evening dinner rush. Raw dairy delivery accepted without spoilage.',
+        status: 'Verified',
+        submittedAt: new Date().toISOString(),
+      },
+      {
+        id: 'rep_02',
+        businessId: 'biz_02',
+        businessName: 'Shree Sai Fashion',
+        managerId: 'mgr_02',
+        managerName: 'Amit Verma',
+        date: new Date().toISOString().split('T')[0],
+        revenue: 24000,
+        expenses: 14500,
+        cashCollection: 14000,
+        bankCollection: 10000,
+        cashSales: 14000,
+        digitalSales: 10000,
+        creditSales: 0,
+        rawMaterialExpenses: 11000,
+        laborExpenses: 2500,
+        utilitiesExpenses: 1000,
+        otherExpenses: 0,
+        closingCashInDrawer: 5500,
+        discrepancy: 0,
+        billCount: 88,
+        outstanding: 0,
+        notes: 'Festival festive collection stock clearance on track.',
+        status: 'Verified',
+        submittedAt: new Date().toISOString(),
+      },
+    ];
+
+    setBusinesses(sampleBiz);
+    setManagers(sampleManagers);
+    setDailyReports(sampleReports);
   };
 
   const clearAllData = () => {
     setBusinesses([]);
+    setManagers([]);
     setDailyReports([]);
     localStorage.removeItem('munim_businesses');
+    localStorage.removeItem('munim_managers');
     localStorage.removeItem('munim_daily_reports');
   };
 
@@ -238,8 +469,13 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addBusiness,
         deleteBusiness,
         getBusiness,
+        managers,
+        addManager,
+        updateManager,
+        deleteManager,
         dailyReports,
         addDailyReport,
+        verifyDailyReport,
         stats,
         seedSampleData,
         clearAllData,

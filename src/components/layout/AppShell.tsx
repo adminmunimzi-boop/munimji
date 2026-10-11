@@ -14,6 +14,7 @@ import {
   Shield,
   LayoutDashboard,
   Building2,
+  Users,
   Sparkles,
   AlertTriangle,
   User,
@@ -46,27 +47,94 @@ export const AppShell: React.FC = () => {
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200/90 px-4 py-3 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <div
-            className="flex items-center gap-3 cursor-pointer select-none"
-            onClick={() => navigate('/')}
-          >
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-sm">
-              म
-            </div>
-            <div>
-              <div className="flex items-baseline">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                  Munim
-                </span>
-                <span className="font-extrabold text-lg tracking-tight text-emerald-600 ml-1">
-                  Ji
-                </span>
+          {/* Logo & Desktop Nav */}
+          <div className="flex items-center gap-8">
+            <div
+              className="flex items-center gap-3 cursor-pointer select-none"
+              onClick={() => navigate('/')}
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-sm">
+                म
               </div>
-              <p className="text-[11px] text-slate-400 font-medium -mt-1 hidden sm:block">
-                Your Personal Business Manager
-              </p>
+              <div>
+                <div className="flex items-baseline">
+                  <span className="font-extrabold text-lg tracking-tight text-slate-900">
+                    Munim
+                  </span>
+                  <span className="font-extrabold text-lg tracking-tight text-emerald-600 ml-1">
+                    Ji
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-medium -mt-1 hidden sm:block">
+                  Your Personal Business Manager
+                </p>
+              </div>
             </div>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/businesses"
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                Businesses
+              </NavLink>
+              <NavLink
+                to="/managers"
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                Managers
+              </NavLink>
+              <NavLink
+                to="/munim-ai"
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                Munim AI
+              </NavLink>
+              <NavLink
+                to="/alerts"
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                Alerts
+              </NavLink>
+            </nav>
           </div>
 
           {/* Right Header Navigation */}
@@ -232,6 +300,18 @@ export const AppShell: React.FC = () => {
         >
           <Building2 className="w-5 h-5" />
           <span className="text-[10px]">Businesses</span>
+        </NavLink>
+
+        <NavLink
+          to="/managers"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg ${
+              isActive ? 'text-emerald-600 font-bold' : 'text-slate-500 hover:text-slate-800'
+            }`
+          }
+        >
+          <Users className="w-5 h-5" />
+          <span className="text-[10px]">Managers</span>
         </NavLink>
 
         <NavLink

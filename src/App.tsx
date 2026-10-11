@@ -11,6 +11,8 @@ import { MunimAIPage } from '@/pages/MunimAIPage';
 import { AlertsPage } from '@/pages/AlertsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
+import { ManagersPage } from '@/pages/ManagersPage';
+import { ManagerReportPage } from '@/pages/ManagerReportPage';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -37,6 +39,8 @@ export const AppContent: React.FC = () => {
         <Route path="businesses" element={<BusinessesPage />} />
         <Route path="businesses/new" element={<NewBusinessPage />} />
         <Route path="businesses/:id" element={<BusinessDetailPage />} />
+        <Route path="managers" element={<ManagersPage />} />
+        <Route path="manager/report" element={<ManagerReportPage />} />
         <Route path="munim-ai" element={<MunimAIPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="profile" element={<ProfilePage />} />
