@@ -8,7 +8,10 @@ import {
   Calendar,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  History,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 interface AddBusinessModalProps {
@@ -24,13 +27,30 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Business Type Fork: 'new' | 'existing'
+  const [businessType, setBusinessType] = useState<'new' | 'existing'>('new');
+
   // Step 1: Business Basics
   const [businessName, setBusinessName] = useState('');
   const [industry, setIndustry] = useState('');
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState('');
 
-  // Step 2: Investment Details
+  // Existing Business Duration & History
+  const [operatingAge, setOperatingAge] = useState<'6_months' | '1_year' | '2_plus_years'>('1_year');
+  const [investmentAlreadyRecovered, setInvestmentAlreadyRecovered] = useState(false);
+  
+  // Past Month-wise figures (seeded for 1 year or 6 months)
+  const [pastMonthsData, setPastMonthsData] = useState([
+    { month: 'Month 1', revenue: '450000', profit: '85000' },
+    { month: 'Month 2', revenue: '480000', profit: '92000' },
+    { month: 'Month 3', revenue: '510000', profit: '110000' },
+    { month: 'Month 4', revenue: '530000', profit: '115000' },
+    { month: 'Month 5', revenue: '560000', profit: '125000' },
+    { month: 'Month 6', revenue: '590000', profit: '140000' },
+  ]);
+
+  // Step 2: Investment Details (For New Business)
   const [initialCapitalLakhs, setInitialCapitalLakhs] = useState('');
   const [monthlyFixedCostsLakhs, setMonthlyFixedCostsLakhs] = useState('');
   const [expectedRecoveryMonths, setExpectedRecoveryMonths] = useState('24');
@@ -44,6 +64,12 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleMonthChange = (index: number, field: 'revenue' | 'profit', value: string) => {
+    const updated = [...pastMonthsData];
+    updated[index][field] = value;
+    setPastMonthsData(updated);
+  };
+
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
@@ -55,6 +81,8 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
       // Save business
       const newBusiness = {
         name: businessName,
+        type: businessType,
+        operatingAge: businessType === 'existing' ? operatingAge : '0',
         industry: industry || 'Retail',
         location: location || 'India',
         startDate: startDate || new Date().toISOString().split('T')[0],
@@ -63,7 +91,9 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
         expectedRecoveryMonths: parseInt(expectedRecoveryMonths) || 24,
         breakEvenMonths: parseInt(breakEvenMonths) || 12,
         riskAppetite,
-        managerName: managerName || 'Manager',
+        investmentRecovered: investmentAlreadyRecovered,
+        pastHistory: businessType === 'existing' ? pastMonthsData : [],
+        managerName: managerName || 'Assigned Manager',
         reportingFrequency,
         enableAlerts,
       };
@@ -79,10 +109,15 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Add New Business</h2>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Add New Business</h2>
+            <p className="text-xs text-slate-400">
+              Configure baseline profile and past reporting history
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
@@ -91,7 +126,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
           </button>
         </div>
 
-        {/* Stepper Wizard Progress Bar matching screenshot */}
+        {/* Stepper Wizard Progress Bar */}
         <div className="px-6 pt-4 pb-2">
           <div className="flex items-center justify-between relative max-w-sm mx-auto">
             {/* Step 1: Business Basics */}
@@ -127,7 +162,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
               }`}
             />
 
-            {/* Step 2: Investment Details */}
+            {/* Step 2: Investment / Past History */}
             <div className="flex flex-col items-center z-10">
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
@@ -145,7 +180,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
                   step === 2 ? 'text-emerald-600' : 'text-slate-500'
                 }`}
               >
-                Investment Details
+                {businessType === 'new' ? 'Investment Details' : 'Financial History'}
               </span>
             </div>
 
@@ -181,12 +216,89 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
         {/* Modal Form Content */}
         <form onSubmit={handleNext}>
           <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-            {/* STEP 1: Business Basics */}
+            {/* STEP 1: Business Basics & Fork */}
             {step === 1 && (
               <div className="space-y-4 animate-in fade-in duration-200">
+                {/* The Fork: New vs Existing Business */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-2">
+                    Is this a New Business or already running?
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setBusinessType('new')}
+                      className={`p-3.5 rounded-xl border text-left transition-all ${
+                        businessType === 'new'
+                          ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs">New Business</span>
+                        {businessType === 'new' && (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Starting fresh from Day 1. Full investment tracking.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBusinessType('existing')}
+                      className={`p-3.5 rounded-xl border text-left transition-all ${
+                        businessType === 'existing'
+                          ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs">Existing Business</span>
+                        {businessType === 'existing' && (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Running for 6-12+ months. Add past sales & profit history.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* If Existing: Choose Operating Duration */}
+                {businessType === 'existing' && (
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <label className="text-xs font-semibold text-slate-700 block">
+                      Operating Duration
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: '6_months', label: 'Past 6 Months' },
+                        { id: '1_year', label: 'Past 1 Year' },
+                        { id: '2_plus_years', label: '2+ Years' },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setOperatingAge(item.id as any)}
+                          className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all ${
+                            operatingAge === item.id
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Business Name
+                    Business Name *
                   </label>
                   <input
                     type="text"
@@ -221,24 +333,24 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Mumbai, Maharashtra"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
-                  />
-                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g., Mumbai"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
+                    />
+                  </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Start Date
-                  </label>
-                  <div className="relative">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">
+                      Start Date
+                    </label>
                     <input
                       type="date"
                       value={startDate}
@@ -250,114 +362,175 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
               </div>
             )}
 
-            {/* STEP 2: Investment Details */}
+            {/* STEP 2: Investment Details (New) OR Past Financial History (Existing) */}
             {step === 2 && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Initial Capital Invested (₹ Lakhs)
-                    </label>
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={initialCapitalLakhs}
-                    onChange={(e) => setInitialCapitalLakhs(e.target.value)}
-                    placeholder="e.g., 50"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Total money you have put into the business
-                  </p>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Monthly Fixed Costs (₹ Lakhs)
-                    </label>
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={monthlyFixedCostsLakhs}
-                    onChange={(e) => setMonthlyFixedCostsLakhs(e.target.value)}
-                    placeholder="e.g., 5"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Regular monthly expenses like rent, salaries
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-[11px] font-semibold text-slate-700">
-                        Expected Recovery Time (Months)
-                      </label>
-                      <HelpCircle className="w-3 h-3 text-slate-400" />
+                {businessType === 'new' ? (
+                  /* New Business: Capital Inputs */
+                  <>
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <label className="text-xs font-semibold text-slate-700">
+                          Initial Capital Invested (₹ Lakhs)
+                        </label>
+                        <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={initialCapitalLakhs}
+                        onChange={(e) => setInitialCapitalLakhs(e.target.value)}
+                        placeholder="e.g., 50"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Total money you have put into the business
+                      </p>
                     </div>
-                    <input
-                      type="number"
-                      value={expectedRecoveryMonths}
-                      onChange={(e) => setExpectedRecoveryMonths(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
-                    />
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      When you expect to get your money back
-                    </p>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-[11px] font-semibold text-slate-700">
-                        Break-Even Period (Months)
-                      </label>
-                      <HelpCircle className="w-3 h-3 text-slate-400" />
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <label className="text-xs font-semibold text-slate-700">
+                          Monthly Fixed Costs (₹ Lakhs)
+                        </label>
+                        <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={monthlyFixedCostsLakhs}
+                        onChange={(e) => setMonthlyFixedCostsLakhs(e.target.value)}
+                        placeholder="e.g., 5"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Regular monthly expenses like rent, salaries
+                      </p>
                     </div>
-                    <input
-                      type="number"
-                      value={breakEvenMonths}
-                      onChange={(e) => setBreakEvenMonths(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
-                    />
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      When earnings cover all costs
-                    </p>
-                  </div>
-                </div>
 
-                <div>
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      riskAppetite
-                    </label>
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="flex items-center gap-1 mb-1">
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Expected Recovery Time (Months)
+                          </label>
+                          <HelpCircle className="w-3 h-3 text-slate-400" />
+                        </div>
+                        <input
+                          type="number"
+                          value={expectedRecoveryMonths}
+                          onChange={(e) => setExpectedRecoveryMonths(e.target.value)}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1 mb-1">
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Break-Even Period (Months)
+                          </label>
+                          <HelpCircle className="w-3 h-3 text-slate-400" />
+                        </div>
+                        <input
+                          type="number"
+                          value={breakEvenMonths}
+                          onChange={(e) => setBreakEvenMonths(e.target.value)}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          riskAppetite
+                        </label>
+                        <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['Low', 'Medium', 'High'] as const).map((lvl) => (
+                          <button
+                            key={lvl}
+                            type="button"
+                            onClick={() => setRiskAppetite(lvl)}
+                            className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
+                              riskAppetite === lvl
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {lvl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Existing Business: Past 6-12 Months History Form */
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">
+                          Past Financial History Entry
+                        </h4>
+                        <p className="text-[11px] text-slate-400">
+                          Enter basic past monthly revenue & profit to immediately generate baseline analytics.
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        {operatingAge === '6_months' ? '6 Months' : '1 Year'}
+                      </span>
+                    </div>
+
+                    {/* Month-wise History Table */}
+                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                      {pastMonthsData.map((row, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+                          <span className="w-16 text-xs font-bold text-slate-700 shrink-0">
+                            {row.month}
+                          </span>
+                          <div className="flex-1">
+                            <input
+                              type="number"
+                              value={row.revenue}
+                              onChange={(e) => handleMonthChange(idx, 'revenue', e.target.value)}
+                              placeholder="Revenue (₹)"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="number"
+                              value={row.profit}
+                              onChange={(e) => handleMonthChange(idx, 'profit', e.target.value)}
+                              placeholder="Profit (₹)"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-emerald-700 font-semibold focus:outline-none focus:border-emerald-600"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Investment Already Recovered Checkbox */}
+                    <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/70 flex items-start gap-2.5 mt-2">
+                      <input
+                        type="checkbox"
+                        id="alreadyRecoveredModal"
+                        checked={investmentAlreadyRecovered}
+                        onChange={(e) => setInvestmentAlreadyRecovered(e.target.checked)}
+                        className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="alreadyRecoveredModal" className="text-xs text-slate-700 cursor-pointer">
+                        <span className="font-bold text-slate-900 block">
+                          Initial investment is already fully recovered
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          (Suppresses unnecessary recovery metrics so dashboard focuses purely on growth).
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['Low', 'Medium', 'High'] as const).map((lvl) => (
-                      <button
-                        key={lvl}
-                        type="button"
-                        onClick={() => setRiskAppetite(lvl)}
-                        className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
-                          riskAppetite === lvl
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        {lvl}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    How much financial uncertainty you can handle
-                  </p>
-                </div>
+                )}
               </div>
             )}
 
@@ -366,7 +539,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
               <div className="space-y-4 animate-in fade-in duration-200">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Assign Manager
+                    Assign Store Manager
                   </label>
                   <input
                     type="text"
@@ -376,7 +549,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
                     className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-600 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-600 transition-all placeholder:text-slate-400"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
-                    They will submit daily reports on your behalf
+                    They will submit daily reports on your behalf without seeing strategic owner financials.
                   </p>
                 </div>
 
@@ -413,9 +586,9 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
                 {/* Enable Alerts Switch */}
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800">Enable Alerts</h4>
+                    <h4 className="text-xs font-bold text-slate-800">Enable Alerts & Munim Ji Guidance</h4>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Get notified about important events
+                      Get notified about operational anomalies, hiring delays, and expense leaks.
                     </p>
                   </div>
                   <button
@@ -432,7 +605,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
             )}
           </div>
 
-          {/* Modal Footer matching screenshot */}
+          {/* Modal Footer */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
             {step > 1 ? (
               <button
@@ -455,7 +628,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
             {step < 3 ? (
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1"
               >
                 <span>Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />

@@ -10,7 +10,11 @@ import {
   Mail,
   CheckCircle2,
   X,
-  TrendingUp
+  Users,
+  Package,
+  Clock,
+  TrendingDown,
+  DollarSign
 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
@@ -20,26 +24,45 @@ export const AlertsPage: React.FC = () => {
   const [contactValue, setContactValue] = useState('');
   const [consultSubmitted, setConsultSubmitted] = useState(false);
 
-  const sampleAlerts = [
+  const operationalAlerts = [
     {
       id: '1',
       business: 'Priya Foods',
-      severity: 'watch',
-      title: 'Operating Expenses Spike (+22%)',
-      desc: 'Raw material procurement was 22% higher than the 14-day median.',
-      financialImpact: 'Estimated margin impact: -4.5%',
-      recommendedAction: 'Verify flour and butter bulk invoices with store manager.',
+      type: 'Manpower & Hiring',
+      severity: 'critical',
+      icon: Users,
+      title: 'Delayed Hiring Causing Overtime Surge',
+      desc: '1 vacant baker role is forcing 60 extra overtime hours onto existing staff at 1.5x pay rates.',
+      monthlyLoss: '₹18,500 / month',
+      potentialSavings: '₹14,000 / month',
+      recommendedAction: 'Hire 1 part-time kitchen assistant immediately to normalize shift hours.',
       hasConsultationOption: true,
     },
     {
       id: '2',
-      business: 'Shree sai fashion',
-      severity: 'info',
-      title: 'Consistent Daily Reporting (7-Day Streak)',
-      desc: 'Manager Rajesh Kumar has submitted all 7 reports on time before 10:00 AM.',
-      financialImpact: 'High data confidence achieved.',
-      recommendedAction: 'No action needed. Reporting compliance is 100%.',
+      business: 'Priya Foods',
+      type: 'Operations & Inventory',
+      severity: 'watch',
+      icon: Package,
+      title: 'Perishable Dairy Inventory Spoilage',
+      desc: 'Daily dairy procurement exceeded historical consumption by 18%, causing unrecorded shelf waste.',
+      monthlyLoss: '₹24,000 / month',
+      potentialSavings: '₹20,000 / month',
+      recommendedAction: 'Mandate daily batch cold-storage reconciliation before closing daily report.',
       hasConsultationOption: false,
+    },
+    {
+      id: '3',
+      business: 'Shree sai fashion',
+      type: 'Operations & Manpower',
+      severity: 'watch',
+      icon: Clock,
+      title: 'Evening Peak-Hour Counter Bottleneck',
+      desc: 'Only 1 cashier active during 7:00 PM – 9:30 PM peak footfall, causing customer checkout drop-offs.',
+      monthlyLoss: '₹32,000 / month in lost counter sales',
+      potentialSavings: '₹30,000 / month',
+      recommendedAction: 'Cross-train 1 floor staff member to operate secondary billing POS during peak evenings.',
+      hasConsultationOption: true,
     },
   ];
 
@@ -52,88 +75,122 @@ export const AlertsPage: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Alerts & Action Recommendations
+          Operational Alerts & Loss Prevention
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Every alert connects to a practical decision and operational next step
+          Munim Ji monitors hiring, manpower, and expense leaks to preserve your monthly profits
         </p>
       </div>
 
-      {/* Alerts List */}
-      <div className="space-y-4">
-        {sampleAlerts.map((a) => (
-          <div
-            key={a.id}
-            className="munim-card p-5 space-y-3 relative overflow-hidden munim-card-hover"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                    a.severity === 'critical'
-                      ? 'bg-rose-50 text-rose-600'
-                      : a.severity === 'watch'
-                      ? 'bg-amber-50 text-amber-600'
-                      : 'bg-emerald-50 text-emerald-600'
-                  }`}
-                >
-                  {a.severity === 'critical' ? (
-                    <ShieldAlert className="w-5 h-5" />
-                  ) : a.severity === 'watch' ? (
-                    <AlertTriangle className="w-5 h-5" />
-                  ) : (
-                    <Info className="w-5 h-5" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      {a.business}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                        a.severity === 'critical'
-                          ? 'bg-rose-100 text-rose-700'
-                          : a.severity === 'watch'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}
-                    >
-                      {a.severity}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-base text-slate-900 mt-0.5">{a.title}</h3>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{a.desc}</p>
-
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="text-xs text-slate-500">
-                <strong className="text-slate-800">Financial Impact:</strong> {a.financialImpact}
-              </div>
-              <div className="text-xs text-slate-500">
-                <strong className="text-slate-800">Recommended Action:</strong> {a.recommendedAction}
-              </div>
-            </div>
-
-            {/* Actions Bar */}
-            <div className="pt-2 flex flex-wrap items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors shadow-2xs">
-                View Business Details
-              </button>
-              {a.hasConsultationOption && (
-                <button
-                  onClick={() => setConsultModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-colors shadow-xs"
-                >
-                  Book 1-on-1 Consultation (₹499)
-                </button>
-              )}
-            </div>
+      {/* Value Protection Banner */}
+      <div className="munim-card p-4 bg-emerald-50/60 border border-emerald-200 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            ₹
           </div>
-        ))}
+          <div>
+            <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+              Total Potential Savings Identified: ₹64,000 / Month
+            </h4>
+            <p className="text-[11px] text-slate-600">
+              Fixing these 3 operational & hiring bottlenecks recovers ~₹7.68 Lakhs in annual profit.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Operational Alerts List */}
+      <div className="space-y-4">
+        {operationalAlerts.map((a) => {
+          const IconComp = a.icon;
+          return (
+            <div
+              key={a.id}
+              className="munim-card p-5 space-y-3 relative overflow-hidden munim-card-hover"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      a.severity === 'critical'
+                        ? 'bg-rose-50 text-rose-600'
+                        : 'bg-amber-50 text-amber-600'
+                    }`}
+                  >
+                    <IconComp className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        {a.business}
+                      </span>
+                      <span className="text-[10px] text-slate-400">• {a.type}</span>
+                      <span
+                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                          a.severity === 'critical'
+                            ? 'bg-rose-100 text-rose-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {a.severity}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-base text-slate-900 mt-0.5">{a.title}</h3>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{a.desc}</p>
+
+              {/* Exact Monetary Loss & Potential Savings Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 rounded-xl bg-rose-50/70 border border-rose-200/80">
+                  <span className="text-[11px] font-semibold text-rose-700 flex items-center gap-1">
+                    <TrendingDown className="w-3.5 h-3.5" />
+                    Identified Monthly Loss
+                  </span>
+                  <span className="text-sm font-extrabold text-rose-800 block mt-0.5">
+                    {a.monthlyLoss}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80">
+                  <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Recoverable Monthly Savings
+                  </span>
+                  <span className="text-sm font-extrabold text-emerald-800 block mt-0.5">
+                    {a.potentialSavings}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actionable Guidance */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700">
+                <strong className="text-slate-900">Recommended Operational Fix:</strong>{' '}
+                {a.recommendedAction}
+              </div>
+
+              {/* Actions Bar */}
+              <div className="pt-2 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => alert(`Operational instructions logged for ${a.business} store manager!`)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors shadow-2xs"
+                >
+                  Apply Fix to Manager Roster
+                </button>
+                {a.hasConsultationOption && (
+                  <button
+                    onClick={() => setConsultModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-colors shadow-xs"
+                  >
+                    Discuss with Business Expert (₹499)
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ₹499 Consultation Booking Modal */}
@@ -167,7 +224,7 @@ export const AlertsPage: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Review your business metrics, expense anomalies, and recovery targets with an experienced business advisor.
+                  Review your manpower bottlenecks, expense leaks, and hiring plans with a retail & SME business strategist.
                 </p>
 
                 <div className="space-y-2">

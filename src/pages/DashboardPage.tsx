@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   TrendingUp,
   Percent,
@@ -13,11 +13,14 @@ import {
   AlertTriangle,
   Mic,
   Send,
-  Lock,
   Building2,
   ChevronDown,
   Info,
   CheckCircle2,
+  DollarSign,
+  History,
+  ShieldCheck,
+  X,
   ExternalLink
 } from 'lucide-react';
 import {
@@ -35,11 +38,14 @@ type ChartMode = 'trend' | 'by_business' | 'allocation';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const outletContext = useOutletContext<{ openAddBusinessModal?: () => void }>();
+
   const [chartMode, setChartMode] = useState<ChartMode>('trend');
   const [activeDefinition, setActiveDefinition] = useState<string | null>(null);
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState('All Businesses');
   const [userQuery, setUserQuery] = useState('');
   const [aiResponse, setAiResponse] = useState<string | null>(null);
+  const [savingsModalOpen, setSavingsModalOpen] = useState(false);
 
   // Chart data matching the screenshot
   const trendData = [
@@ -69,18 +75,39 @@ export const DashboardPage: React.FC = () => {
     "Compare my businesses' performance",
   ];
 
+  const savingsBreakdown = [
+    {
+      title: 'Overtime & Manpower Hiring Fix',
+      business: 'Priya Foods',
+      saved: '₹38,000',
+      desc: 'Hired part-time baker, eliminating 60 hours of expensive emergency overtime pay.',
+    },
+    {
+      title: 'Supplier Packaging Renegotiation',
+      business: 'Shree sai fashion',
+      saved: '₹64,000',
+      desc: 'Munim Ji alerted packaging costs were 28% above regional averages; renegotiated bulk supplier.',
+    },
+    {
+      title: 'Raw Material Kitchen Waste Reduction',
+      business: 'Priya Foods',
+      saved: '₹40,000',
+      desc: 'Daily dairy inventory reconciliation prevented recurring spoilage losses.',
+    },
+  ];
+
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userQuery.trim()) return;
     setAiResponse(
-      `Analyzing ${selectedBusinessFilter}: Your current portfolio shows steady operational profit of ₹8.5L across Priya Foods and Shree sai fashion. Priya Foods is your most capital-efficient business with stable margins.`
+      `Analyzing ${selectedBusinessFilter}: Your current portfolio shows steady operational profit of ₹8.5L across Priya Foods and Shree sai fashion. In the last 6 months, you have saved ₹1,42,000 by addressing Munim Ji operational alerts. Priya Foods remains your most capital-efficient business.`
     );
   };
 
   const handleChipClick = (q: string) => {
     setUserQuery(q);
     setAiResponse(
-      `Munim Ji analysis for "${q}": Based on your last 6 months of daily health reports, Priya Foods has generated higher steady cash flows, while Shree sai fashion shows higher potential for retail expansion.`
+      `Munim Ji analysis for "${q}": Based on your verified daily manager reports and past 1-year history, Priya Foods has maintained steady 28% gross margins while Shree sai fashion shows positive cash collections. Action recommended: Review seasonal winter stock procurement.`
     );
   };
 
@@ -96,8 +123,8 @@ export const DashboardPage: React.FC = () => {
             Complete overview of all your investments
           </p>
         </div>
-        <div className="text-xs text-slate-400 font-medium">
-          Last updated: Just now
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-400 font-medium">Last updated: Just now</span>
         </div>
       </div>
 
@@ -123,7 +150,12 @@ export const DashboardPage: React.FC = () => {
             <div className="text-2xl font-extrabold text-emerald-600 tracking-tight">
               ₹60000.00 Cr
             </div>
-            <p className="text-xs text-slate-400 mt-1">Across 2 businesses</p>
+            <div className="flex items-center justify-between mt-1 text-[11px] text-slate-400">
+              <span>Across 2 businesses</span>
+              <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">
+                Source: Baseline Setup
+              </span>
+            </div>
           </div>
         </div>
 
@@ -152,7 +184,12 @@ export const DashboardPage: React.FC = () => {
                 ↗ 12%
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">vs last month</p>
+            <div className="flex items-center justify-between mt-1 text-[11px] text-slate-400">
+              <span>vs last month</span>
+              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
+                Source: Manager Reports
+              </span>
+            </div>
           </div>
         </div>
 
@@ -200,37 +237,119 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Definition Popup Helper */}
-      {activeDefinition && (
-        <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>
-              {activeDefinition === 'capital' && 'Total capital invested across all setup, equipment, and working funds.'}
-              {activeDefinition === 'profit' && 'Estimated operating profit calculated as total monthly revenues minus expenses.'}
-              {activeDefinition === 'roi' && 'Return on Investment percentage calculated from cumulative eligible net profit.'}
-            </span>
+      {/* 2.1 NEW FEATURE: "Saved with Munim Ji" (Value Realization Tracker - Last 6 Months) */}
+      <div className="munim-card p-5 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0 font-bold text-lg">
+            🏆
           </div>
-          <button
-            onClick={() => setActiveDefinition(null)}
-            className="text-slate-400 hover:text-slate-700 font-bold ml-2"
-          >
-            ✕
-          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                Value Realization Tracker
+              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                Last 6 Months
+              </span>
+            </div>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                ₹1,42,000
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-emerald-700">
+                Saved with Munim Ji
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Across 3 resolved operational anomalies, supplier renegotiations, and overtime leakages.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setSavingsModalOpen(true)}
+          className="self-start sm:self-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5"
+        >
+          <span>View Savings Breakdown</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Savings Breakdown Modal */}
+      {savingsModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="max-w-md w-full bg-white p-6 rounded-2xl border border-slate-200 shadow-2xl relative animate-in zoom-in-95">
+            <button
+              onClick={() => setSavingsModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                🏆
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">
+                  ₹1,42,000 Saved with Munim Ji
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Documented savings from resolved operational alerts
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+              {savingsBreakdown.map((item, idx) => (
+                <div key={idx} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      {item.business}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      +{item.saved} Saved
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-slate-900">{item.title}</h4>
+                  <p className="text-[11px] text-slate-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setSavingsModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* 3. Munim Ji's Priority Alert Banner */}
-      <div className="munim-card p-4 bg-amber-50/70 border border-amber-200/80 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-          <AlertCircle className="w-4 h-4" />
+      <div className="munim-card p-4 bg-amber-50/70 border border-amber-200/80 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <AlertCircle className="w-4 h-4" />
+          </div>
+          <div className="text-xs sm:text-sm text-slate-800">
+            <strong className="font-bold text-slate-900 mr-2">
+              Munim Ji's Priority Alert
+            </strong>
+            <span>Your portfolio is performing well. Keep monitoring key metrics.</span>
+          </div>
         </div>
-        <div className="text-xs sm:text-sm text-slate-800">
-          <strong className="font-bold text-slate-900 mr-2">
-            Munim Ji's Priority Alert
-          </strong>
-          <span>Your portfolio is performing well. Keep monitoring key metrics.</span>
-        </div>
+
+        <button
+          onClick={() => navigate('/alerts')}
+          className="text-xs font-bold text-amber-900 hover:text-amber-700 flex items-center gap-1 shrink-0"
+        >
+          <span>View Alerts</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* 4. Chart: Revenue & Profit Trend */}
@@ -240,7 +359,10 @@ export const DashboardPage: React.FC = () => {
             <h3 className="font-extrabold text-base text-slate-900">
               Revenue & Profit Trend (₹L/Month)
             </h3>
-            <button className="text-slate-400 hover:text-slate-600">
+            <button
+              onClick={() => setActiveDefinition(activeDefinition === 'profit' ? null : 'profit')}
+              className="text-slate-400 hover:text-slate-600"
+            >
               <HelpCircle className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -292,10 +414,7 @@ export const DashboardPage: React.FC = () => {
                   contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   formatter={(val: number) => [`₹${val} Lakhs`, '']}
                 />
-                <Legend
-                  wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }}
-                  iconType="square"
-                />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }} iconType="square" />
                 <Bar dataKey="revenue" name="Revenue" fill="#15803d" radius={[4, 4, 0, 0]} maxBarSize={45} />
                 <Bar dataKey="profit" name="Profit" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={45} />
               </BarChart>
@@ -304,9 +423,7 @@ export const DashboardPage: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}L`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px' }} />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }} />
                 <Bar dataKey="revenue" name="Monthly Revenue" fill="#15803d" radius={[4, 4, 0, 0]} maxBarSize={45} />
                 <Bar dataKey="profit" name="Monthly Profit" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={45} />
@@ -330,7 +447,21 @@ export const DashboardPage: React.FC = () => {
           <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
             Your Businesses – Journey Status
           </h2>
-          <span className="text-xs text-slate-400 font-medium">2 businesses</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-medium">2 businesses</span>
+            <button
+              onClick={() => {
+                if (outletContext?.openAddBusinessModal) {
+                  outletContext.openAddBusinessModal();
+                } else {
+                  navigate('/businesses/new');
+                }
+              }}
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+            >
+              + Add Another
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -356,10 +487,12 @@ export const DashboardPage: React.FC = () => {
               <div>
                 <span className="text-slate-400 block">Invested</span>
                 <span className="font-bold text-slate-900 text-sm">₹500000.0L</span>
+                <span className="text-[10px] text-slate-400">Source: Day 1 Baseline</span>
               </div>
               <div>
                 <span className="text-slate-400 block">Current ROI</span>
                 <span className="font-bold text-slate-900 text-sm">0%</span>
+                <span className="text-[10px] text-slate-400">Recovery in progress</span>
               </div>
             </div>
 
@@ -414,10 +547,12 @@ export const DashboardPage: React.FC = () => {
               <div>
                 <span className="text-slate-400 block">Invested</span>
                 <span className="font-bold text-slate-900 text-sm">₹100000.0L</span>
+                <span className="text-[10px] text-slate-400">Source: 1-Year History</span>
               </div>
               <div>
                 <span className="text-slate-400 block">Current ROI</span>
                 <span className="font-bold text-slate-900 text-sm">0%</span>
+                <span className="text-[10px] text-slate-400">Recovery in progress</span>
               </div>
             </div>
 
@@ -635,7 +770,7 @@ export const DashboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* AI Response Display (if activated) */}
+          {/* AI Response Display */}
           {aiResponse && (
             <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-slate-800 leading-relaxed space-y-2 animate-in fade-in">
               <div className="flex items-center gap-1.5 font-bold text-emerald-800">

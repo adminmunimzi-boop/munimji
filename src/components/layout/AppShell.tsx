@@ -49,7 +49,7 @@ export const AppShell: React.FC = () => {
             <div>
               <div className="flex items-baseline">
                 <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                  Munim Ji
+                  Munim
                 </span>
                 <span className="font-extrabold text-lg tracking-tight text-emerald-600 ml-1">
                   Ji
