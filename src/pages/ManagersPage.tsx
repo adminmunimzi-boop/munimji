@@ -23,7 +23,7 @@ import {
 import { useBusiness, ManagerItem, DailyReportItem } from '../context/BusinessContext';
 import { ManagerReportingCalendar } from '../components/manager/ManagerReportingCalendar';
 
-type Tab = 'managers' | 'calendar' | 'reports' | 'discrepancies';
+type Tab = 'managers' | 'reports' | 'discrepancies';
 
 export const ManagersPage: React.FC = () => {
   const { t } = useTranslation();
@@ -159,7 +159,19 @@ export const ManagersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 KPI Scorecards */}
+      {/* 1. Monthly Reporting Calendar Widget (Always on Top) */}
+      <div className="space-y-2">
+        <ManagerReportingCalendar
+          businessId={
+            selectedBusinessFilter === 'all'
+              ? (businesses[0]?.id || '')
+              : selectedBusinessFilter
+          }
+          onSelectBusiness={(id) => setSelectedBusinessFilter(id)}
+        />
+      </div>
+
+      {/* 2. 4 Active Managers KPI Scorecards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         <div className="munim-card p-4 sm:p-5">
           <span className="text-[11px] sm:text-xs text-slate-400 font-medium block">
@@ -215,7 +227,6 @@ export const ManagersPage: React.FC = () => {
         <nav className="flex space-x-6 overflow-x-auto scrollbar-none">
           {[
             { id: 'managers', label: `Manager Directory (${managers.length})` },
-            { id: 'calendar', label: 'Reporting Calendar (कैलेंडर)' },
             { id: 'reports', label: `Daily Reports Audit (${dailyReports.length})` },
             { id: 'discrepancies', label: 'Cash Reconciliations' },
           ].map((tab) => (
@@ -351,7 +362,7 @@ export const ManagersPage: React.FC = () => {
                     <button
                       onClick={() => {
                         setSelectedBusinessFilter(m.businessId);
-                        setActiveTab('calendar');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       className="py-2 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                     >
@@ -374,20 +385,7 @@ export const ManagersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab: Reporting Calendar */}
-      {activeTab === 'calendar' && (
-        <div className="space-y-4">
-          <ManagerReportingCalendar
-            businessId={
-              selectedBusinessFilter === 'all'
-                ? (businesses[0]?.id || '')
-                : selectedBusinessFilter
-            }
-          />
-        </div>
-      )}
-
-      {/* Tab 3: Daily Reports Audit Stream */}
+      {/* Tab 2: Daily Reports Audit Stream */}
       {activeTab === 'reports' && (
         <div className="munim-card p-6 space-y-4">
           <div className="flex items-center justify-between">

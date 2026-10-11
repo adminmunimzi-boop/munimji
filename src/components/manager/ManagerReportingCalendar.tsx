@@ -19,11 +19,16 @@ import { useNavigate } from 'react-router-dom';
 import { useBusiness, DailyReportItem, StoreClosureItem } from '../../context/BusinessContext';
 
 interface Props {
-  businessId: string;
+  businessId?: string;
   managerId?: string;
+  onSelectBusiness?: (id: string) => void;
 }
 
-export const ManagerReportingCalendar: React.FC<Props> = ({ businessId, managerId }) => {
+export const ManagerReportingCalendar: React.FC<Props> = ({
+  businessId,
+  managerId,
+  onSelectBusiness,
+}) => {
   const navigate = useNavigate();
   const {
     businesses,
@@ -34,6 +39,17 @@ export const ManagerReportingCalendar: React.FC<Props> = ({ businessId, managerI
     removeStoreClosure,
     getDateReportingState,
   } = useBusiness();
+
+  const [activeBizId, setActiveBizId] = useState<string>(
+    businessId || businesses[0]?.id || ''
+  );
+
+  // Sync if businessId prop changes
+  useEffect(() => {
+    if (businessId && businessId !== 'all') {
+      setActiveBizId(businessId);
+    }
+  }, [businessId]);
 
   // Current selected month view (default to current month)
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -53,8 +69,13 @@ export const ManagerReportingCalendar: React.FC<Props> = ({ businessId, managerI
   >('Weekly Off');
   const [closureNotes, setClosureNotes] = useState('');
 
-  const business = businesses.find((b) => b.id === businessId) || businesses[0];
-  const manager = managers.find((m) => m.id === managerId) || managers[0];
+  const currentBusiness =
+    businesses.find((b) => b.id === activeBizId) || businesses[0];
+  const business = currentBusiness;
+  const manager =
+    managers.find((m) => m.businessId === business?.id) ||
+    managers.find((m) => m.id === managerId) ||
+    managers[0];
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth(); // 0-indexed
@@ -170,7 +191,24 @@ export const ManagerReportingCalendar: React.FC<Props> = ({ businessId, managerI
         </div>
 
         {/* Month Navigation & Mark Store Closed Action */}
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {businesses.length > 1 && (
+            <select
+              value={activeBizId}
+              onChange={(e) => {
+                setActiveBizId(e.target.value);
+                if (onSelectBusiness) onSelectBusiness(e.target.value);
+              }}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 outline-none focus:border-emerald-600 shadow-xs cursor-pointer"
+            >
+              {businesses.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          )}
+
           <button
             onClick={() => {
               setMarkClosedDate(new Date().toISOString().split('T')[0]);
