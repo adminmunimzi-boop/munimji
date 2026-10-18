@@ -558,6 +558,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         closingCashInDrawer: 3800,
         discrepancy: 0,
         billCount: 122,
+        outstanding: 0,
         notes: 'Post-holiday recovery sales.',
         status: 'Verified',
         submittedAt: new Date().toISOString(),
